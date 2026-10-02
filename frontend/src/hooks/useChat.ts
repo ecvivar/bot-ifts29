@@ -1,0 +1,247 @@
+/**
+ * Estado de la conversación guiada.
+ *
+ * El asistente mantiene una lista de turnos ya resueltos para que el estudiante
+ * pueda volver a leer lo anterior, y expone el "nodo actual" (categoría sobre
+ * la que mostrar opciones).
+ *
+ * Hay dos caminos de entrada y ambos terminan en el mismo contenido:
+ *   - tocar una opción del menú;
+ *   - escribir una consulta, que la API interpreta y resuelve contra la misma
+ *     base de conocimiento del menú (respuesta, aclaración o aviso).
+ *
+ * No se persiste historial en el servidor: la sesión vive en la pestaña del
+ * navegador y se descarta al cerrarla (RNF05 - sin datos personales). El texto
+ * escrito se muestra en la conversación local y no se guarda en ningún lado.
+ */
+
+import { useCallback, useRef, useState } from 'react';
+import { obtenerMenu, enviarSeleccion, enviarMensaje, ApiError } from '../api/client';
+import { prefijoContexto } from '../components/OptionList';
+import type { OpcionContexto, OpcionMenu, TurnoChat } from '../types';
+
+/** Elementos que se renderizan como botones en el menú. */
+export type ElementoLista = OpcionMenu | OpcionContexto;
+
+export interface Turno {
+  id: string;
+  autor: 'bot' | 'estudiante';
+  texto: string;
+  documentos?: DocumentosTurno;
+  contactos?: ContactosTurno;
+  variante?: 'normal' | 'error';
+}
+
+type DocumentosTurno = NonNullable<Extract<TurnoChat, { tipo: 'respuesta' }>['respuesta']['documentos']>;
+type ContactosTurno = NonNullable<Extract<TurnoChat, { tipo: 'derivacion' }>['derivacion']['contactos']>;
+
+export interface EstadoChat {
+  cargando: boolean;
+  error: string | null;
+  turnos: Turno[];
+  opciones: ElementoLista[];
+  nodoActual: string;
+  puedeNavegarAtras: boolean;
+  inicializar: () => Promise<void>;
+  seleccionar: (clave: string, contextoId?: number) => Promise<void>;
+  /** Envía una consulta escrita y aplica el turno que devuelva la API. */
+  consultar: (texto: string) => Promise<void>;
+  reiniciar: () => Promise<void>;
+}
+
+let secuencia = 0;
+const nuevoId = (): string => `t${++secuencia}`;
+
+export function useChat(): EstadoChat {
+  const [turnos, setTurnos] = useState<Turno[]>([]);
+  const [opciones, setOpciones] = useState<ElementoLista[]>([]);
+  const [nodoActual, setNodoActual] = useState('RAIZ');
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  /** Pila de categorías visitadas, para el botón "volver" implícito. */
+  const historial = useRef<string[]>([]);
+  /** Datos del turno de contexto pendiente, para resolver la selección. */
+  const contextoPendiente = useRef<{ claveOpcion: string; clave: string } | null>(null);
+
+  const agregarTurno = useCallback((turno: Omit<Turno, 'id'>) => {
+    setTurnos((prev) => [...prev, { ...turno, id: nuevoId() }]);
+  }, []);
+
+  const inicializar = useCallback(async () => {
+    setCargando(true);
+    setError(null);
+    try {
+      const nodo = await obtenerMenu();
+      setTurnos([{ id: nuevoId(), autor: 'bot', texto: nodo.mensaje }]);
+      setOpciones(nodo.opciones);
+      setNodoActual(nodo.categoria.clave);
+      historial.current = [nodo.categoria.clave];
+      contextoPendiente.current = null;
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : 'No se pudo iniciar la conversación. Probá de nuevo en un momento.',
+      );
+    } finally {
+      setCargando(false);
+    }
+  }, []);
+
+  const aplicarTurno = useCallback(
+    (turno: TurnoChat) => {
+      switch (turno.tipo) {
+        case 'nodo':
+          agregarTurno({ autor: 'bot', texto: turno.nodo.mensaje });
+          setOpciones(turno.nodo.opciones);
+          setNodoActual(turno.nodo.categoria.clave);
+          historial.current.push(turno.nodo.categoria.clave);
+          contextoPendiente.current = null;
+          break;
+
+        case 'respuesta':
+          agregarTurno({
+            autor: 'bot',
+            texto: turno.respuesta.texto,
+            documentos: turno.respuesta.documentos,
+          });
+          // Si el turno viene de una consulta escrita, el estudiante no navegó a
+          // ninguna parte: se conservan las opciones vigentes para que pueda
+          // seguir explorando sin reiniciar. Un clic de menú sí las reemplaza.
+          if (!turno.meta) setOpciones([]);
+          contextoPendiente.current = null;
+          break;
+
+        case 'derivacion':
+          agregarTurno({
+            autor: 'bot',
+            texto: turno.derivacion.texto,
+            contactos: turno.derivacion.contactos,
+          });
+          if (!turno.meta) setOpciones([]);
+          contextoPendiente.current = null;
+          break;
+
+        case 'contexto':
+          agregarTurno({ autor: 'bot', texto: turno.pregunta.texto });
+          setOpciones(turno.pregunta.opciones);
+          contextoPendiente.current = {
+            claveOpcion: turno.claveOpcion,
+            clave: turno.pregunta.clave,
+          };
+          break;
+
+        case 'aclaracion':
+          // Se muestran opciones reales del menú: el estudiante responde
+          // tocando un botón y el flujo continúa como el de siempre.
+          agregarTurno({ autor: 'bot', texto: turno.aclaracion.mensaje });
+          setOpciones(turno.aclaracion.opciones);
+          contextoPendiente.current = null;
+          break;
+
+        case 'no_disponible':
+          // No se borran las opciones vigentes: el estudiante siempre tiene una
+          // salida, sea por el menú o reformulando la consulta.
+          agregarTurno({ autor: 'bot', texto: turno.mensaje });
+          break;
+
+        case 'error':
+          agregarTurno({ autor: 'bot', texto: turno.mensaje, variante: 'error' });
+          break;
+      }
+    },
+    [agregarTurno],
+  );
+
+  const seleccionar = useCallback(
+    async (clave: string, contextoId?: number) => {
+      if (cargando) return;
+
+      const esContexto = clave.startsWith(prefijoContexto);
+      const pendiente = contextoPendiente.current;
+      const esRespuestaDeContexto = esContexto && pendiente !== null;
+
+      // Texto visible de la selección del estudiante.
+      const encontrado = opciones.find((o) =>
+        esContexto ? 'contextoId' in o && o.contextoId === contextoId : o.clave === clave,
+      );
+      const etiqueta = encontrado?.etiqueta ?? '';
+
+      setCargando(true);
+      agregarTurno({ autor: 'estudiante', texto: etiqueta || '…' });
+
+      try {
+        let turno: TurnoChat;
+
+        if (esRespuestaDeContexto) {
+          // Segunda etapa: se manda la opción original con el valor elegido.
+          turno = await enviarSeleccion({
+            opcion: pendiente.claveOpcion,
+            contexto: contextoId,
+          });
+        } else {
+          turno = await enviarSeleccion({ opcion: clave });
+        }
+
+        aplicarTurno(turno);
+        setError(null);
+      } catch (err) {
+        const mensaje =
+          err instanceof ApiError
+            ? err.message
+            : 'Ocurrió un problema al consultar la información. Probá de nuevo.';
+        setError(mensaje);
+        agregarTurno({ autor: 'bot', texto: mensaje, variante: 'error' });
+      } finally {
+        setCargando(false);
+      }
+    },
+    [opciones, cargando, agregarTurno, aplicarTurno],
+  );
+
+  const consultar = useCallback(
+    async (texto: string) => {
+      const consulta = texto.trim();
+      if (cargando || consulta.length === 0) return;
+
+      setCargando(true);
+      agregarTurno({ autor: 'estudiante', texto: consulta });
+
+      try {
+        aplicarTurno(await enviarMensaje(consulta));
+        setError(null);
+      } catch (err) {
+        const mensaje =
+          err instanceof ApiError
+            ? err.message
+            : 'Ocurrió un problema al consultar la información. Probá de nuevo.';
+        setError(mensaje);
+        agregarTurno({ autor: 'bot', texto: mensaje, variante: 'error' });
+      } finally {
+        setCargando(false);
+      }
+    },
+    [cargando, agregarTurno, aplicarTurno],
+  );
+
+  const reiniciar = useCallback(async () => {
+    historial.current = [];
+    await inicializar();
+  }, [inicializar]);
+
+  return {
+    cargando,
+    error,
+    turnos,
+    opciones,
+    nodoActual,
+    puedeNavegarAtras: historial.current.length > 1,
+    inicializar,
+    seleccionar,
+    consultar,
+    reiniciar,
+  };
+}
+
+export type { OpcionMenu, OpcionContexto };

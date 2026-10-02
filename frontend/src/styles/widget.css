@@ -1,0 +1,1005 @@
+/* ==========================================================================
+   Asistente Virtual IFTS N.29 - Hoja de estilos del widget
+   Paleta institucional:
+     #1D3343  azul   -> header, burbuja del bot, botón flotante
+     #FCFCFC  blanco -> texto sobre azul, tarjetas
+     #FFCD02  amarillo -> subtítulo del header, avatar del bot, acentos
+   ========================================================================== */
+
+.ifts-widget {
+  --ifts-azul: #1d3343;
+  --its-azul-oscuro: #15262f;
+  --ifts-azul-claro: #2c4a5e;
+  --ifts-blanco: #fcfcfc;
+  --ifts-amarillo: #ffcd02;
+  --ifts-amarillo-suave: #fff8dc;
+  --ifts-texto: #1f2a33;
+  --ifts-texto-suave: #5a6b78;
+  --ifts-borde: #e1e7eb;
+
+  --ifts-radio: 16px;
+  --ifts-sombra: 0 10px 40px rgba(21, 38, 47, 0.24), 0 2px 8px rgba(21, 38, 47, 0.12);
+  --ifts-transicion: 180ms cubic-bezier(0.2, 0, 0.2, 1);
+
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2147483000;
+  font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ifts-texto);
+  -webkit-font-smoothing: antialiased;
+}
+
+.ifts-widget *,
+.ifts-widget *::before,
+.ifts-widget *::after {
+  box-sizing: border-box;
+}
+
+.ifts-widget--embedeado {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  z-index: auto;
+}
+
+/* ==========================================================================
+   1. Botón flotante (launcher)
+   ========================================================================== */
+
+.ifts-launcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--ifts-azul);
+  color: var(--ifts-amarillo);
+  box-shadow: var(--ifts-sombra);
+  cursor: pointer;
+  transition:
+    transform var(--ifts-transicion),
+    background-color var(--ifts-transicion);
+}
+
+.ifts-launcher:hover {
+  background: var(--ifts-azul-claro);
+  transform: scale(1.06);
+}
+
+.ifts-launcher:active {
+  transform: scale(0.97);
+}
+
+.ifts-launcher:focus-visible {
+  outline: 3px solid var(--ifts-amarillo);
+  outline-offset: 3px;
+}
+
+.ifts-launcher__icon {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
+.ifts-launcher--oculto {
+  display: none;
+}
+
+/* Etiqueta que acompaña al botón para guiar al estudiante. */
+.ifts-launcher__pista {
+  position: absolute;
+  right: 70px;
+  top: 50%;
+  transform: translateY(-50%) translateX(6px);
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--ifts-azul);
+  color: var(--ifts-blanco);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(21, 38, 47, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--ifts-transicion),
+    transform var(--ifts-transicion);
+}
+
+.ifts-launcher:hover + .ifts-launcher__pista,
+.ifts-launcher:focus-visible + .ifts-launcher__pista {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* ==========================================================================
+   2. Panel del chat
+   ========================================================================== */
+
+.ifts-panel {
+  position: absolute;
+  right: 0;
+  bottom: 74px;
+  display: flex;
+  flex-direction: column;
+  width: 380px;
+  height: 520px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 110px);
+  overflow: hidden;
+  border-radius: var(--ifts-radio);
+  background: var(--ifts-blanco);
+  box-shadow: var(--ifts-sombra);
+  transform-origin: bottom right;
+  animation: its-aparece 200ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+.ifts-widget--embedeado .ifts-panel {
+  position: relative;
+  right: auto;
+  bottom: auto;
+  box-shadow: none;
+  width: 100%;
+  max-width: none;
+  height: var(--ifts-alto, 520px);
+  max-height: 100%;
+}
+
+@keyframes its-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ifts-panel {
+    animation: none;
+  }
+  .ifts-launcher {
+    transition: none;
+  }
+}
+
+/* ==========================================================================
+   3. Header
+   ========================================================================== */
+
+.ifts-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--ifts-azul);
+  color: var(--ifts-blanco);
+  flex-shrink: 0;
+}
+
+.ifts-header__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--ifts-amarillo);
+  color: var(--ifts-azul);
+}
+
+.ifts-header__avatar svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
+.ifts-header__texto {
+  min-width: 0;
+  flex: 1;
+}
+
+.ifts-header__titulo {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ifts-blanco);
+  line-height: 1.2;
+  letter-spacing: 0.1px;
+}
+
+.ifts-header__subtitulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0 0;
+  font-size: 12px;
+  color: var(--ifts-amarillo);
+  line-height: 1.2;
+}
+
+.ifts-header__punto {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--ifts-amarillo);
+  animation: its-latido 2.4s ease-in-out infinite;
+}
+
+@keyframes its-latido {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.ifts-header__cerrar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ifts-blanco);
+  cursor: pointer;
+  transition: background-color var(--ifts-transicion);
+}
+
+.ifts-header__cerrar:hover {
+  background: var(--ifts-azul-claro);
+}
+
+.ifts-header__cerrar:focus-visible {
+  outline: 2px solid var(--ifts-amarillo);
+  outline-offset: 1px;
+}
+
+.ifts-header__cerrar svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ==========================================================================
+   4. Cuerpo y burbujas
+   ========================================================================== */
+
+.ifts-cuerpo {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 14px 12px;
+  background: var(--ifts-blanco);
+  scrollbar-width: thin;
+  scrollbar-color: var(--ifts-azul-claro) transparent;
+}
+
+.ifts-cuerpo::-webkit-scrollbar {
+  width: 7px;
+}
+
+.ifts-cuerpo::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: var(--ifts-azul-claro);
+}
+
+.ifts-turno {
+  display: flex;
+  gap: 9px;
+  margin-bottom: 14px;
+  animation: its-entra 200ms ease-out;
+}
+
+.ifts-turno--bot {
+  justify-content: flex-start;
+}
+
+.ifts-turno--estudiante {
+  justify-content: flex-end;
+}
+
+@keyframes its-entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ifts-avatar-mini {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--ifts-amarillo);
+  color: var(--ifts-azul);
+  margin-top: 2px;
+}
+
+.ifts-avatar-mini svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.ifts-turno--estudiante .ifts-avatar-mini {
+  order: 2;
+}
+
+.ifts-burbuja {
+  max-width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--ifts-radio);
+  font-size: 14px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+}
+
+.ifts-burbuja--bot {
+  background: var(--ifts-azul);
+  color: var(--ifts-blanco);
+  border-bottom-left-radius: 5px;
+  box-shadow: 0 2px 6px rgba(21, 38, 47, 0.16);
+}
+
+.ifts-burbuja--estudiante {
+  background: var(--ifts-amarillo);
+  color: var(--ifts-azul);
+  border-bottom-right-radius: 5px;
+  font-weight: 600;
+  max-width: 82%;
+}
+
+.ifts-burbuja p {
+  margin: 0;
+}
+
+.ifts-burbuja p + p {
+  margin-top: 8px;
+}
+
+.ifts-burbuja a {
+  color: var(--ifts-amarillo);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  overflow-wrap: anywhere;
+}
+
+.ifts-burbuja strong {
+  font-weight: 700;
+}
+
+.ifts-burbuja--error {
+  background: #8a2f2f;
+}
+
+/* Indicador "escribiendo..." */
+.ifts-escribiendo {
+  display: inline-flex;
+  gap: 4px;
+  padding: 14px;
+}
+
+.ifts-escribiendo span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ifts-blanco);
+  opacity: 0.45;
+  animation: its-punto 1.2s infinite ease-in-out;
+}
+
+.ifts-escribiendo span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.ifts-escribiendo span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes its-punto {
+  0%,
+  60%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+/* ==========================================================================
+   5. Opciones del menú
+   ========================================================================== */
+
+.ifts-opciones {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0 16px 37px;
+}
+
+.ifts-opcion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--ifts-borde);
+  border-left: 3px solid var(--ifts-amarillo);
+  border-radius: 10px;
+  background: var(--ifts-blanco);
+  color: var(--ifts-azul);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--ifts-transicion),
+    border-color var(--ifts-transicion),
+    transform var(--ifts-transicion);
+}
+
+.ifts-opcion:hover:not(:disabled) {
+  background: var(--ifts-amarillo-suave);
+  border-color: var(--ifts-amarillo);
+  border-left-color: var(--ifts-amarillo);
+}
+
+.ifts-opcion:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.ifts-opcion:focus-visible {
+  outline: 2px solid var(--ifts-azul);
+  outline-offset: 2px;
+}
+
+.ifts-opcion:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ifts-opcion__flecha {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  color: var(--ifts-azul);
+  opacity: 0.55;
+}
+
+.ifts-opcion--volver {
+  border-left-color: transparent;
+  background: transparent;
+  color: var(--ifts-texto-suave);
+  font-weight: 500;
+  font-size: 13px;
+}
+
+.ifts-opcion--volver:hover:not(:disabled) {
+  background: #f4f6f7;
+  border-color: var(--ifts-borde);
+  color: var(--ifts-azul);
+}
+
+.ifts-opcion--volver .ifts-opcion__flecha {
+  transform: rotate(180deg);
+}
+
+/* ==========================================================================
+   6. Tarjeta de documento
+   ========================================================================== */
+
+.ifts-doc {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid var(--ifts-borde);
+  border-radius: 11px;
+  background: var(--ifts-blanco);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    background-color var(--ifts-transicion),
+    border-color var(--ifts-transicion);
+}
+
+.ifts-doc:hover {
+  background: var(--ifts-amarillo-suave);
+  border-color: var(--ifts-amarillo);
+}
+
+.ifts-doc:focus-visible {
+  outline: 2px solid var(--ifts-azul);
+  outline-offset: 2px;
+}
+
+.ifts-doc__icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: var(--ifts-azul);
+  color: var(--ifts-amarillo);
+  font-size: 15px;
+}
+
+.ifts-doc__cuerpo {
+  min-width: 0;
+  flex: 1;
+}
+
+.ifts-doc__nombre {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ifts-azul);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ifts-doc__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 11.5px;
+  color: var(--ifts-texto-suave);
+}
+
+.ifts-doc__tipo {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--ifts-amarillo-suave);
+  color: var(--ifts-azul);
+  font-weight: 600;
+}
+
+.ifts-doc__accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ifts-azul);
+}
+
+.ifts-doc__accion svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Documento sin enlace: se muestra la ficha sin URL inventada (RF07). */
+.ifts-doc--sin-enlace {
+  cursor: default;
+  border-style: dashed;
+}
+
+.ifts-doc--sin-enlace:hover {
+  background: var(--ifts-blanco);
+  border-color: var(--ifts-borde);
+}
+
+.ifts-doc__aviso {
+  margin-top: 5px;
+  font-size: 11.5px;
+  color: var(--ifts-texto-suave);
+  font-style: italic;
+}
+
+/* ==========================================================================
+   7. Tarjeta de contacto (derivación)
+   ========================================================================== */
+
+.ifts-contacto {
+  display: flex;
+  gap: 11px;
+  padding: 12px;
+  border: 1px solid var(--ifts-borde);
+  border-radius: 11px;
+  background: var(--ifts-blanco);
+}
+
+.ifts-contacto + .ifts-contacto {
+  margin-top: 8px;
+}
+
+.ifts-contacto__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--ifts-azul);
+  color: var(--ifts-amarillo);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.ifts-contacto__cuerpo {
+  min-width: 0;
+  flex: 1;
+}
+
+.ifts-contacto__nombre {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ifts-azul);
+  line-height: 1.3;
+}
+
+.ifts-contacto__rol {
+  margin: 1px 0 0;
+  font-size: 12px;
+  color: var(--ifts-texto-suave);
+}
+
+.ifts-contacto__motivo {
+  margin: 7px 0 0;
+  padding-top: 7px;
+  border-top: 1px dashed var(--ifts-borde);
+  font-size: 12px;
+  color: var(--ifts-texto-suave);
+  line-height: 1.45;
+}
+
+.ifts-contacto__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.ifts-contacto__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 7px;
+  background: var(--ifts-azul);
+  color: var(--ifts-blanco);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: background-color var(--ifts-transicion);
+}
+
+.ifts-contacto__link:hover {
+  background: var(--ifts-azul-claro);
+}
+
+.ifts-contacto__link:focus-visible {
+  outline: 2px solid var(--ifts-amarillo);
+  outline-offset: 2px;
+}
+
+.ifts-contacto__link--secundario {
+  background: transparent;
+  border: 1px solid var(--ifts-azul);
+  color: var(--ifts-azul);
+}
+
+.ifts-contacto__link--secundario:hover {
+  background: var(--ifts-azul);
+  color: var(--ifts-blanco);
+}
+
+.ifts-contacto__horario {
+  margin: 7px 0 0;
+  font-size: 11.5px;
+  color: var(--ifts-texto-suave);
+}
+
+.ifts-aviso-async {
+  display: flex;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 9px 11px;
+  border-radius: 9px;
+  background: var(--ifts-amarillo-suave);
+  border: 1px dashed #e0c000;
+  color: var(--ifts-azul);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+/* ==========================================================================
+   8. Campo de consulta escrita
+   --------------------------------------------------------------------------
+   Complementa al menu. El texto se envia a la API, que lo interpreta y
+   devuelve la misma respuesta institucional que la opcion equivalente.
+   ========================================================================== */
+
+.ifts-entrada {
+  padding: 9px 12px 10px;
+  border-top: 1px solid var(--ifts-borde);
+  background: var(--ifts-blanco);
+  flex-shrink: 0;
+}
+
+.ifts-entrada__etiqueta {
+  display: block;
+  margin: 0 0 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ifts-texto-suave);
+}
+
+.ifts-entrada__fila {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.ifts-entrada__campo {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 38px;
+  max-height: 88px;
+  padding: 9px 11px;
+  border: 1px solid var(--ifts-borde);
+  border-radius: 10px;
+  background: #ffffff;
+  color: var(--ifts-texto);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  resize: vertical;
+  transition: border-color var(--ifts-transicion), box-shadow var(--ifts-transicion);
+}
+
+.ifts-entrada__campo::placeholder {
+  color: #9aa8b3;
+}
+
+.ifts-entrada__campo:focus {
+  outline: none;
+  border-color: var(--ifts-azul-claro);
+  box-shadow: 0 0 0 3px rgba(44, 74, 94, 0.14);
+}
+
+.ifts-entrada__campo:disabled {
+  background: #f4f6f8;
+  color: var(--ifts-texto-suave);
+}
+
+.ifts-entrada__enviar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 10px;
+  background: var(--ifts-azul);
+  color: var(--ifts-blanco);
+  cursor: pointer;
+  transition: background-color var(--ifts-transicion), transform var(--ifts-transicion);
+}
+
+.ifts-entrada__enviar svg {
+  width: 18px;
+  height: 18px;
+}
+
+.ifts-entrada__enviar:hover:not(:disabled) {
+  background: var(--ifts-azul-claro);
+}
+
+.ifts-entrada__enviar:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.ifts-entrada__enviar:focus-visible {
+  outline: 2px solid var(--ifts-azul);
+  outline-offset: 2px;
+}
+
+.ifts-entrada__enviar:disabled {
+  background: #c8d1d8;
+  cursor: not-allowed;
+}
+
+.ifts-entrada__ayuda {
+  margin: 6px 0 0;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--ifts-texto-suave);
+}
+
+/* ==========================================================================
+   9. Pie
+   ========================================================================== */
+
+.ifts-pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--ifts-borde);
+  background: #f7f9fa;
+  flex-shrink: 0;
+}
+
+.ifts-pie__texto {
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--ifts-texto-suave);
+  margin: 0;
+}
+
+.ifts-pie__enlace {
+  color: var(--ifts-azul);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.ifts-pie__enlace:hover {
+  border-bottom-color: var(--ifts-amarillo);
+}
+
+.ifts-reiniciar {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 9px;
+  border: 1px solid var(--ifts-borde);
+  border-radius: 7px;
+  background: var(--ifts-blanco);
+  color: var(--ifts-azul);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--ifts-transicion);
+}
+
+.ifts-reiniciar:hover {
+  background: var(--ifts-amarillo-suave);
+  border-color: var(--ifts-amarillo);
+}
+
+.ifts-reiniciar:focus-visible {
+  outline: 2px solid var(--ifts-azul);
+  outline-offset: 1px;
+}
+
+.ifts-reiniciar svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* ==========================================================================
+   10. Modo embebido (dentro del iframe de Moodle)
+   ========================================================================== */
+
+.ifts-widget--embedeado .ifts-launcher,
+.ifts-widget--embedeado .ifts-launcher__pista {
+  display: none;
+}
+
+.ifts-widget--embedeado .ifts-panel {
+  display: flex;
+}
+
+/* ==========================================================================
+   11. Página completa (acceso directo por enlace)
+   ========================================================================== */
+
+.ifts-pagina {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px;
+  background: #f4f6f7;
+}
+
+.ifts-pagina__tarjeta {
+  max-width: 460px;
+  padding: 28px;
+  border-radius: var(--ifts-radio);
+  background: var(--ifts-blanco);
+  box-shadow: 0 4px 24px rgba(21, 38, 47, 0.1);
+  text-align: center;
+  font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+}
+
+.ifts-pagina__logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--ifts-amarillo);
+  color: var(--ifts-azul);
+  margin-bottom: 14px;
+}
+
+.ifts-pagina__titulo {
+  margin: 0 0 6px;
+  color: var(--ifts-azul);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.ifts-pagina__texto {
+  margin: 0 0 20px;
+  color: #5a6b78;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ifts-pagina__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 24px;
+  border: none;
+  border-radius: 10px;
+  background: var(--ifts-azul);
+  color: #fcfcfc;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 180ms;
+}
+
+.ifts-pagina__cta:hover {
+  background: #2c4a5e;
+}
+
+.ifts-pagina__nota {
+  margin: 16px 0 0;
+  font-size: 12px;
+  color: #8a99a5;
+}

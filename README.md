@@ -1,0 +1,392 @@
+# Asistente Virtual IFTS N.°29
+
+Asistente virtual institucional para consultas administrativas y académicas del
+IFTS N.°29. Combina un **menú guiado** con un **campo de consulta escrita** y está
+pensado para embeberse en el campus virtual de Moodle mediante un `iframe`.
+
+La consulta escrita no genera respuestas: la API interpreta la intención y
+devuelve **la misma respuesta institucional** —con sus documentos y contactos— que
+la opción equivalente del menú. Ante una consulta ambigua pide precisión con
+opciones reales del menú; si no hay información autorizada, lo informa.
+
+- **Frontend:** React 18 + TypeScript + Vite
+- **Backend:** Express 5 + TypeScript, ejecutado como función *serverless* de Vercel
+- **Datos:** PostgreSQL en Neon, con un catálogo semilla equivalente para poder
+  demostrar el proyecto sin infraestructura
+- **Interpretación:** coincidencia exacta + variantes + similitud trigram
+  (`pg_trgm`). Sin LLM, sin embeddings, sin acceso a Internet
+- **Documentos:** sincronización con Google Drive mediante *Service Account*
+  (modo solo lectura)
+
+---
+
+## 1. Requisitos
+
+| Herramienta | Versión |
+| --- | --- |
+| Node.js | 20 o superior (probado con 24) |
+| npm | 10 o superior |
+
+No hace falta Docker ni base de datos para arrancar en modo demostración.
+
+## 2. Puesta en marcha rápida (modo demo)
+
+```bash
+npm install
+
+# Terminal 1: API
+npm run dev:api
+
+# Terminal 2: interfaz
+npm run dev:web
+```
+
+- Interfaz: <http://localhost:5173>
+- API: <http://localhost:3000/api/health>
+
+Sin `DATABASE_URL` la API responde con el **catálogo semilla local**
+(`origen: "seed"`), que contiene exactamente el mismo contenido que
+`db/002_seed.sql`. Es el modo recomendado para desarrollo y para la
+demostración de la defensa.
+
+## 3. Estructura del proyecto
+
+```
+.
+├── api/index.ts            # Entry point de la función serverless de Vercel
+├── db/
+│   ├── 001_schema.sql      # DDL: tablas, índices, triggers, vista de control
+│   ├── 002_seed.sql        # Contenido inicial (idempotente)
+│   ├── 003_verificacion.sql# Comprueba que las consultas de la app funcionan
+│   ├── 004_kb_schema.sql   # Base de conocimiento conversacional + pg_trgm
+│   └── 005_kb_seed.sql     # Intenciones, preguntas y variantes (generado)
+├── backend/src/
+│   ├── db/                 # pool.ts (Neon), catalogo.ts (consultas), push.ts
+│   ├── routes/             # menu, chat, system (health / metricas / sync)
+│   ├── services/           # chat.service, nl.service, drive.service, metricas
+│   ├── middleware/         # CORS + cabeceras, rate limit, errores
+│   ├── seed/catalogo.ts    # Catálogo semilla equivalente a 002_seed.sql
+│   ├── seed/conocimiento.ts# Base de conocimiento semilla equivalente a 005
+│   └── utils/              # env.ts, errors.ts
+├── frontend/
+│   ├── public/widget.js    # Script inyector para Moodle
+│   └── src/                # ChatWidget, tarjetas, burbujas, estilos
+└── vercel.json             # Frontend estático + API en un mismo proyecto
+```
+
+## 4. Configuración
+
+Copiar `.env.example` a `.env` y completar lo necesario:
+
+```bash
+cp .env.example .env
+```
+
+**Un solo archivo para todo el proyecto**: tanto el backend como el build del
+frontend leen ese `.env` de la raíz (Vite usa `envDir: '..'`). No hace falta
+`dotenv` ni flags por script. Si el archivo no existe, todo funciona con los
+defaults y la API cae en modo semilla.
+
+El `.env` está en `.gitignore` y **no se despliega**: en Vercel las mismas
+variables se cargan en *Project Settings → Environment Variables*.
+
+| Variable | Para | Default |
+| --- | --- | --- |
+| `DATABASE_URL` | API | vacío → modo semilla |
+| `GOOGLE_SERVICE_ACCOUNT_EMAIL` | API | vacío → Drive deshabilitado |
+| `GOOGLE_PRIVATE_KEY` | API | vacío |
+| `GOOGLE_SHARED_FOLDER_ID` | API | vacío |
+| `DRIVE_PUBLIC_LINKS` | API | `false` |
+| `CORS_ORIGINS` | API | Moodle + app + localhost |
+| `IFRAME_ANCESTORS` | API | mismos orígenes que CORS |
+| `SYNC_SECRET` | API | vacío |
+| `RATE_LIMIT_MAX` | API | `120` req/min por IP |
+| `KB_UMBRAL_ALTO` / `KB_UMBRAL_MEDIO` | API | `0.90` / `0.70` |
+| `KB_MAX_MENSAJE` | API | `800` |
+| `VITE_API_BASE_URL` | Build | vacío → mismo origen |
+| `VITE_ALLOWED_ORIGINS` | Build | Moodle + app |
+| `VITE_INSTITUTO_NOMBRE` | Build | `IFTS N°29` |
+
+> Las variables `VITE_*` se incrustan en el bundle **en tiempo de build**. En
+> Vercel hay que definirlas en *Project Settings → Environment Variables*; si
+> se cambian hay que volver a desplegar.
+
+### Nombre de la base
+
+La aplicación **no depende del nombre**: lo único que lee es `DATABASE_URL`. El
+proyecto usa `ifts29` como nombre de base, que es la convención que aparece en
+`.env.example` y en `db/003_verificacion.sql`:
+
+```
+postgresql://USUARIO:PASSWORD@ep-xxxx-pooler.REGION.neon.tech/ifts29?sslmode=require
+                                                                   ^^^^^^ base
+```
+
+La URL debe ser la **pooled connection** de Neon (*Connection Details → Pooled
+connection*), porque el driver `@neondatabase/serverless` habla HTTP y no
+sockets TCP. El nombre de la rama (`main`, `dev`, …) es indistinto.
+
+### ¿Por qué `@neondatabase/serverless` y no `pg`?
+
+Neon autentica con SCRAM-SHA-256, que `node-postgres` no soporta, y un runtime
+serverless no necesita sockets TCP persistentes. El driver serverless habla
+HTTP directo y resuelve SCRAM con WebCrypto. No hay pool que configurar: cada
+consulta es una petición HTTPS.
+
+## 5. Base de datos
+
+```bash
+# Crear la base y cargar esquema + contenido
+DATABASE_URL=postgresql://... npm run db:push
+
+# Recrear desde cero
+DATABASE_URL=postgresql://... npm run db:reset
+```
+
+Ambos scripts son **idempotentes** (`CREATE ... IF NOT EXISTS` y
+`ON CONFLICT DO UPDATE`), así que se pueden reejecutar sin romper nada.
+
+`db/001_schema.sql` define:
+
+- `categoria`, `opcion_menu`, `respuesta`, `documento`, `contacto`, `contexto`
+- Tablas de relación: `opcion_contacto`, `respuesta_documento`, `contexto_opcion`
+- `metrica_opcion` (métricas agregadas, sin datos personales)
+- Trigger `touch_actualizado_en` y vista `v_arbol_menu` para control
+
+`db/004_kb_schema.sql` agrega la base de conocimiento de las consultas escritas:
+
+- `kb_intencion` → qué intención corresponde a qué opción del menú
+- `kb_pregunta` → la formulación canónica de la consulta
+- `kb_pregunta_variante` → las redacciones alternativas, ya normalizadas
+- Índices: B-tree para la coincidencia exacta y GIN `gin_trgm_ops` para la
+  similitud; extensión `pg_trgm`
+
+Cada intención apunta a una opción de `opcion_menu` y a una `respuesta` ya
+validada (`ON DELETE RESTRICT`): el contenido no se duplica ni se genera, se
+reutiliza. `db/005_kb_seed.sql` se **genera** desde el catálogo semilla de
+TypeScript:
+
+```bash
+npm run db:kb --workspace backend   # regenera db/005_kb_seed.sql
+npm test --workspace backend        # falla si el SQL y el seed TS se desalinean
+```
+
+### Verificación
+
+`db/003_verificacion.sql` ejecuta las mismas consultas que usa la aplicación:
+
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/003_verificacion.sql
+```
+
+Comprueba la navegación, las respuestas, el aislamiento de documentos por
+materia, los contactos, el submenú contextual, el `UPSERT` de métricas, el
+`UPDATE` de sincronización y la vista de mantenimiento.
+
+## 6. API
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/api/menu` | Menú raíz. `?mapa=1` devuelve el árbol completo |
+| `GET` | `/api/menu/:clave` | Un nodo del menú |
+| `POST` | `/api/chat` | `{ "opcion": "RAIZ_OP_ADMIN" }` o `{ "message": "¿cuándo empiezan las clases?" }` → turno |
+| `POST` | `/api/chat/documento` | Registra la apertura de un documento |
+| `GET` | `/api/metricas` | Métricas agregadas de los últimos N días |
+| `POST` | `/api/sync` | Sincroniza fichas con Google Drive |
+| `GET` | `/api/health` | Estado de la API, la base y Drive |
+
+`POST /api/chat` devuelve siempre un discriminante `tipo`:
+
+- `nodo` → un nuevo menú (`nodo`)
+- `respuesta` → texto y, si corresponde, `respuesta.documentos`
+- `derivacion` → orientación a la persona-humana adecuada
+- `contexto` → submenú de contexto (comisión, cuatrimestre)
+- `aclaracion` → la consulta era ambigua: `aclaracion.opciones` son opciones
+  reales del menú, para responder con un toque
+- `no_disponible` → no hay información autorizada para esa consulta
+
+Los turnos que provienen de una consulta escrita incluyen `meta` con el origen
+(`kb_question`, `kb_variant`, `rule`), el tipo de coincidencia (`exacto`,
+`similar`, `regla`) y la confianza. Sirve para trazabilidad y para medir en qué
+casos hay que ampliar la base de conocimiento; no se muestra al estudiante.
+
+Ejemplos:
+
+```bash
+curl localhost:3000/api/menu
+curl localhost:3000/api/chat -H 'Content-Type: application/json' \
+     -d '{"opcion":"ACA_OP_TP"}'
+curl localhost:3000/api/chat -H 'Content-Type: application/json' \
+     -d '{"message":"¿cuándo empiezan las clases de Técnicas de Programación?"}'
+curl localhost:3000/api/chat -H 'Content-Type: application/json' \
+     -d '{"message":"¿cuándo empiezan las clases?"}'   # → aclaración entre 4 materias
+```
+
+`opcion`/`categoria` y `message` son excluyentes: enviar ambos se rechaza. El
+campo opcional `conversationId` se acepta y se ignora (la memoria conversacional
+está postergada).
+
+### Errores
+
+Formato uniforme: `{ "error": { "code": "...", "message": "..." } }`.
+Códigos: `VALIDATION_ERROR`, `NOT_FOUND`, `RATE_LIMITED`,
+`DRIVE_NO_CONFIGURADO`, `INTERNAL_ERROR`.
+
+### Cómo se interpreta una consulta escrita
+
+1. **Normalización**: minúsculas, sin tildes ni puntuación, espacios colapsados,
+   letras repetidas recortadas (`normalizar`, el mismo código que carga las
+   variantes).
+2. **Regla de saludos**: `hola`, `buen día`… devuelven el menú raíz.
+3. **Coincidencia exacta** sobre `normalized_text` (índice B-tree).
+4. **Similitud trigram** (`pg_trgm`), con el mismo coeficiente que la función en
+   memoria para que el modo demo y Neon se comporten igual.
+5. **Umbrales**: confianza alta → respuesta; media → aclaración con opciones del
+   menú; baja → `no_disponible`.
+
+Los umbrales se configuran por entorno (`KB_UMBRAL_ALTO`, `KB_UMBRAL_MEDIO`,
+`KB_MARGEN_AMBIGUEDAD`, `KB_MAX_MENSAJE`, `KB_MAX_OPCIONES_ACLARACION`). Son
+valores iniciales, pensados para calibrarse con consultas reales.
+
+## 7. Sincronización con Google Drive
+
+1. Crear una *Service Account* en Google Cloud y descargar la clave JSON.
+2. **Compartir la carpeta institucional** con el `client_email` de la cuenta
+   como **lector**. También funciona con un *Shared Drive*.
+3. Cargar los archivos respetando la convención de nombres:
+   `<Materia>_<Tipo>.pdf`, por ejemplo `Tecnicas de Programacion_Programa.pdf`.
+   La comparación ignora mayúsculas, acentos y signos.
+4. Configurar las variables `GOOGLE_*`.
+5. Ejecutar la sincronización:
+
+```bash
+curl -X POST https://<deploy>/api/sync \
+     -H "X-Sync-Secret: $SYNC_SECRET" \
+     -H 'Content-Type: application/json' -d '{"dryRun": false}'
+```
+
+先用 `dryRun: true` para ver qué se emparejaría y qué quedaría sin
+coincidencia, sin escribir nada.
+
+**El emparejamiento es exacto, por diseño.** Se compara el `fileId` conocido o
+el nombre normalizado completo. No hay coincidencia aproximada por prefijo: en
+una misma materia, "Programa" y "Cronograma" comparten prefijo, así que un
+match laxo podría adjuntar el PDF equivocado al estudiante. Un enlace
+incorrecto es peor que un enlace ausente, así que lo que no coincide se
+reporta en `sinMatch` para que el equipo renombre el archivo.
+
+- La sincronización **recorre subcarpetas**.
+- La Service Account opera en **solo lectura**: `DRIVE_PUBLIC_LINKS` está en
+  `false` porque crear el permiso "cualquiera con el enlace" es una escritura
+  que el alcance `drive.readonly` rechaza con 403. Si la carpeta ya es pública,
+  funciona sin tocar nada.
+- Un documento sin archivo en Drive **no recibe una URL inventada**: la tarjeta
+  se muestra sin enlace y con un aviso para consultar a tutoría o Bedelía.
+
+## 8. Despliegue en Vercel
+
+Frontend y API conviven en un mismo proyecto, por lo que el widget se sirve en
+el mismo origen que consume la API y **no hay CORS que configurar**:
+
+```bash
+npm i -g vercel
+vercel link
+vercel env add DATABASE_URL production
+vercel env add GOOGLE_SERVICE_ACCOUNT_EMAIL production
+vercel env add GOOGLE_PRIVATE_KEY production
+vercel env add GOOGLE_SHARED_FOLDER_ID production
+vercel env add SYNC_SECRET production
+vercel --prod
+```
+
+`vercel.json` ya define el build (`frontend/dist`), la función `api/index.ts` y
+los *rewrites*.
+
+### Cabeceras de seguridad
+
+- `Content-Security-Policy` con `frame-ancestors` limitado al Moodle y al propio
+  sitio. Sin `X-Frame-Options`, que no admite listas y rompería el embebido.
+- El CORS de la API es una **allowlist** estricta (nunca `*`) resuelta en
+  `backend/src/middleware/cors.ts`; `vercel.json` no agrega cabeceras CORS a
+  `/api` para no sobrescribirla.
+- `X-Content-Type-Options`, `Referrer-Policy` y `Permissions-Policy` en todo el
+  sitio.
+
+## 9. Insertar en Moodle
+
+En *Administración del sitio → Ajustes → HTML adicional*, pegar:
+
+```html
+<script src="https://chatbot-ifts29.vercel.app/widget.js" defer></script>
+```
+
+Opciones por atributos del `<script>`:
+
+| Atributo | Default | Uso |
+| --- | --- | --- |
+| `data-ifts-src` | `https://chatbot-ifts29.vercel.app` | Otro despliegue |
+| `data-ifts-title` | `Asistente IFTS 29` | Título del panel |
+| `data-ifts-height` | `520` | Alto en píxeles |
+| `data-ifts-container` | — | Selector del contenedor (modo inline) |
+| `data-ifts-debug` | `false` | Doble clic para abrir y ver el pie |
+
+Si `data-ifts-container` apunta a un elemento, el widget se dibuja **inline**
+(panel de `380×520`) en vez de usar el lanzador flotante.
+
+### API de control
+
+```js
+window.IFTS29Asistente.abrir();
+window.IFTS29Asistente.cerrar();
+window.IFTS29Asistente.alternar();
+window.IFTS29Asistente.reiniciar();
+window.IFTS29Asistente.destruir();
+```
+
+Los mensajes entre el iframe y la página padre usan un `targetOrigin` explícito
+(`https://aulasvirtuales.bue.edu.ar`), no `'*'`.
+
+## 10. Scripts
+
+| Comando | Qué hace |
+| --- | --- |
+| `npm run dev:api` | API en modo desarrollo (puerto 3000) |
+| `npm run dev:web` | Interfaz con HMR (puerto 5173) |
+| `npm run build` | Compila backend y frontend |
+| `npm run typecheck` | Chequeo de tipos de ambos workspaces |
+| `npm test --workspace backend` | Tests del backend (`node --test`, sin dependencias extra) |
+| `npm run db:push` | Aplica `001_schema.sql` + `002_seed.sql` + las migraciones de la KB en Neon |
+| `npm run db:reset` | Borra el esquema y lo vuelve a crear |
+| `npm run db:kb --workspace backend` | Regenera `db/005_kb_seed.sql` desde el seed de TypeScript |
+
+## 11. Privacidad
+
+- **No se guardan datos personales.** No hay nombres, correos ni matrícula del
+  estudiante en el backend.
+- El historial de conversación vive **solo en la pestaña** del navegador y se
+  descarta al recargar o reiniciar. El texto que el estudiante escribe tampoco
+  se persiste: se usa para resolver la consulta en el momento y la base solo
+  guarda las variantes institutionales.
+- Las métricas son **agregadas y anónimas**: qué opción se elige y cuántas
+  veces, sin identidad ni marca de tiempo. Las del flujo escrito registran el
+  desenlace (`texto_exacto`, `texto_similar`, `texto_regla`, `aclaracion`,
+  `no_disponible`), nunca la consulta.
+- La clave privada de Google Drive nunca llega al frontend.
+
+## 12. Límites conocidos
+
+- Los contactos de tutoría están **cargados en el seed**, no se sincronizan
+  desde Drive. Para hacerlo falta definir el formato del archivo fuente
+  (cuatrimestre / comisión) y el mapeo al esquema.
+- La resolución de la opción "no encontré lo que busco" deriva a tutoría,
+  Bedelía y Asesoría Pedagógica. Si el equipo quiere derivaciones distintas
+  por cuatrimestre o comisión, se modelan con `opcion_contacto` + `contexto`.
+- El texto libre cubre únicamente lo que ya está en el menú: si la base de
+  conocimiento no tiene una variante parecida, la respuesta es
+  `no_disponible`. Ampliar cobertura es agregar variantes a
+  `backend/src/seed/conocimiento.ts` y regenerar `db/005_kb_seed.sql`.
+- Los umbrales de similitud son valores iniciales. Conviene revisarlos con
+  consultas reales antes de dar por cerrada la calibración.
+- No hay memoria conversacional: `conversationId` se acepta y se ignora.
+- La capa de `documento` (metadatos + `fileId` + enlace real) es la base para
+  sumar RAG más adelante sin cambiar el contrato del menú.

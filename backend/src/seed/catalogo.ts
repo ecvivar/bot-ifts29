@@ -1,0 +1,538 @@
+/**
+ * Catalogo semilla en memoria.
+ *
+ * Espejo exacto de `db/002_seed.sql`. Se usa como fallback cuando no hay
+ * `DATABASE_URL` configurado, para que el proyecto se pueda levantar y
+ * demostrar (incluido el widget de Moodle) sin depender de Neon ni de Drive.
+ *
+ * En produccion la API lee siempre de PostgreSQL; este archivo solo cubre el
+ * modo demo y las pruebas de interfaz.
+ */
+
+export type TipoOpcionDb = 'navegar' | 'responder' | 'derivar';
+export type EstadoDocumento = 'borrador' | 'revision' | 'vigente' | 'reemplazado' | 'archivado';
+
+export interface SeedCategoria {
+  id: number;
+  clave: string;
+  nombre: string;
+  mensaje: string | null;
+  orden: number;
+  es_raiz: boolean;
+  activo: boolean;
+}
+
+export interface SeedOpcion {
+  id: number;
+  clave: string;
+  categoria_id: number;
+  etiqueta: string;
+  descripcion: string | null;
+  tipo: TipoOpcionDb;
+  categoria_destino_id: number | null;
+  respuesta_id: number | null;
+  es_volver: boolean;
+  icono: string | null;
+  orden: number;
+  activo: boolean;
+}
+
+export interface SeedRespuesta {
+  id: number;
+  clave: string;
+  texto: string;
+  orden: number;
+  activo: boolean;
+}
+
+export interface SeedDocumento {
+  id: number;
+  clave: string;
+  nombre: string;
+  descripcion: string | null;
+  tipo: string;
+  mime_type: string;
+  drive_file_id: string | null;
+  drive_nombre_archivo: string | null;
+  drive_view_url: string | null;
+  vigente: boolean;
+  estado: EstadoDocumento;
+  vigencia_desde: string | null;
+  actualizado_en: string | null;
+  sincronizado_en: string | null;
+}
+
+export interface SeedContacto {
+  id: number;
+  clave: string;
+  nombre: string;
+  rol: string | null;
+  area: string | null;
+  email: string | null;
+  telefono: string | null;
+  url_perfil: string | null;
+  motivo: string | null;
+  horario: string | null;
+  orden: number;
+  activo: boolean;
+}
+
+export interface SeedRespuestaDocumento {
+  respuesta_id: number;
+  documento_id: number;
+  orden: number;
+}
+
+export interface SeedOpcionContacto {
+  opcion_id: number;
+  contacto_id: number;
+  orden: number;
+}
+
+export interface SeedOpcionContexto {
+  opcion_id: number;
+  contexto_id: number;
+  orden: number;
+}
+
+export interface SeedContexto {
+  id: number;
+  clave: string;
+  nombre: string;
+  valor: string | null;
+  ambito_tipo: string | null;
+  ambito_clave: string | null;
+  grupo: string | null;
+  orden: number;
+  activo: boolean;
+}
+
+export interface SeedData {
+  categorias: SeedCategoria[];
+  opciones: SeedOpcion[];
+  respuestas: SeedRespuesta[];
+  documentos: SeedDocumento[];
+  respuestaDocumento: SeedRespuestaDocumento[];
+  contactos: SeedContacto[];
+  opcionContacto: SeedOpcionContacto[];
+  contextos: SeedContexto[];
+  /** Submenús contextuales (comisión, cuatrimestre). Vacío en el MVP. */
+  opcionContexto: SeedOpcionContexto[];
+}
+
+/* ==========================================================================
+ * 1. Contactos (derivación asincrónica - RF04)
+ * ======================================================================== */
+const contactos: SeedContacto[] = [
+  {
+    id: 1,
+    clave: 'tutoria_academica',
+    nombre: 'MG María González',
+    rol: 'Tutora académica',
+    area: 'Tutorías',
+    email: 'mgonzalez@bue.edu.ar',
+    telefono: null,
+    url_perfil: 'https://aulasvirtuales.bue.edu.ar/',
+    motivo:
+      'Dudas sobre cursada, pertenencia a comisiones, presentación de trabajos prácticos o elección de materia.',
+    horario: 'Lunes a viernes de 9:00 a 18:00 hs',
+    orden: 1,
+    activo: true,
+  },
+  {
+    id: 2,
+    clave: 'bedelia',
+    nombre: 'Bedelía IFTS N.29',
+    rol: 'Secretaría académica',
+    area: 'Bedelía',
+    email: 'bedelia.ifts29@bue.edu.ar',
+    telefono: null,
+    url_perfil: null,
+    motivo: 'Inscripciones, mesas de examen, constancias, certificados y trámites administrativos.',
+    horario: 'Lunes a viernes de 8:30 a 17:30 hs',
+    orden: 2,
+    activo: true,
+  },
+  {
+    id: 3,
+    clave: 'advisory_pedagogica',
+    nombre: 'Asesoría Pedagógica',
+    rol: 'Tutoría pedagógica',
+    area: 'Tutorías',
+    email: 'tutoria.ifts29@bue.edu.ar',
+    telefono: null,
+    url_perfil: null,
+    motivo: 'Dudas sobre cursada en ambiente virtual y uso del campus, con el equipo docente.',
+    horario: 'Lunes a viernes de 9:00 a 18:00 hs',
+    orden: 3,
+    activo: true,
+  },
+];
+
+/* ==========================================================================
+ * 2. Categorías (nodos del árbol)
+ * ======================================================================== */
+const categorias: SeedCategoria[] = [
+  {
+    id: 1,
+    clave: 'RAIZ',
+    nombre: 'Inicio',
+    mensaje: '¡Hola! Soy el asistente virtual del IFTS Nº29. ¿En qué puedo ayudarte hoy?',
+    orden: 0,
+    es_raiz: true,
+    activo: true,
+  },
+  {
+    id: 2,
+    clave: 'ADMINISTRATIVAS',
+    nombre: 'Consultas administrativas',
+    mensaje: 'Sobre qué tema administrativo puedo ayudarte?',
+    orden: 1,
+    es_raiz: false,
+    activo: true,
+  },
+  {
+    id: 3,
+    clave: 'ACADEMICAS',
+    nombre: 'Consultas academicas',
+    mensaje: '¿Sobre qué materia necesitás información?',
+    orden: 2,
+    es_raiz: false,
+    activo: true,
+  },
+  {
+    id: 4,
+    clave: 'M_ADMIN_BASE_DATOS',
+    nombre: 'Administración de Bases de Datos',
+    mensaje: '¿Qué información necesitás sobre Administración de Bases de Datos?',
+    orden: 10,
+    es_raiz: false,
+    activo: true,
+  },
+  {
+    id: 5,
+    clave: 'M_ANALISIS_MATEMATICO',
+    nombre: 'Elementos de Análisis Matemático',
+    mensaje: '¿Qué información necesitás sobre Elementos de Análisis Matemático?',
+    orden: 11,
+    es_raiz: false,
+    activo: true,
+  },
+  {
+    id: 6,
+    clave: 'M_LOGICA_COMPUTACIONAL',
+    nombre: 'Lógica Computacional',
+    mensaje: '¿Qué información necesitás sobre Lógica Computacional?',
+    orden: 12,
+    es_raiz: false,
+    activo: true,
+  },
+  {
+    id: 7,
+    clave: 'M_TECNICAS_PROGRAMACION',
+    nombre: 'Técnicas de Programación',
+    mensaje: '¿Qué información necesitás sobre Técnicas de Programación?',
+    orden: 13,
+    es_raiz: false,
+    activo: true,
+  },
+];
+
+/* ==========================================================================
+ * 3. Documentos (fichas; el fileId lo completa la sincronización con Drive)
+ * ======================================================================== */
+interface MateriaSeed {
+  codigo: string;
+  /** Clave de la categoría en `categoria.clave`. */
+  catClave: string;
+  /** Prefijo usado en los nombres de archivo alojados en Drive. */
+  prefijoArchivo: string;
+  /** Nombre completo visible para el estudiante. */
+  nombre: string;
+}
+
+const materias: MateriaSeed[] = [
+  {
+    codigo: 'ABD',
+    catClave: 'M_ADMIN_BASE_DATOS',
+    prefijoArchivo: 'Administracion de Base de Datos',
+    nombre: 'Administración de Bases de Datos',
+  },
+  {
+    codigo: 'EAM',
+    catClave: 'M_ANALISIS_MATEMATICO',
+    prefijoArchivo: 'Elementos de Analisis Matematico',
+    nombre: 'Elementos de Análisis Matemático',
+  },
+  {
+    codigo: 'LC',
+    catClave: 'M_LOGICA_COMPUTACIONAL',
+    prefijoArchivo: 'Logica Computacional',
+    nombre: 'Lógica Computacional',
+  },
+  {
+    codigo: 'TP',
+    catClave: 'M_TECNICAS_PROGRAMACION',
+    prefijoArchivo: 'Tecnicas de Programacion',
+    nombre: 'Técnicas de Programación',
+  },
+];
+
+const DIAS_CURSADA =
+  'Comisión A: Lunes y Miércoles de 18:00 a 21:00 hs — modalidad virtual sincrónica.\n' +
+  'Comisión B: Martes y Jueves de 8:00 a 11:00 hs — modalidad virtual sincrónica.\n' +
+  'Comisión C: Viernes de 14:00 a 20:00 hs — modalidad virtual sincrónica.';
+
+const TIPOS_DOC: Array<{
+  sufijo: string;
+  /** Sufijo de la clave del documento. Debe coincidir con db/002_seed.sql. */
+  claveDoc: string;
+  /** Sufijo de la clave de la respuesta asociada. */
+  claveRespuesta: string;
+  tipo: SeedDocumento['tipo'];
+  descripcion: string;
+}> = [
+  {
+    sufijo: 'Programa',
+    claveDoc: 'PROGRAMA',
+    claveRespuesta: 'programa',
+    tipo: 'programa',
+    descripcion: 'Programa vigente de la materia.',
+  },
+  {
+    sufijo: 'Cronograma',
+    claveDoc: 'CRONOGRAMA',
+    claveRespuesta: 'cronograma',
+    tipo: 'cronograma',
+    descripcion: 'Cronograma vigente del cuatrimestre.',
+  },
+  {
+    sufijo: 'Condiciones_de_Aprobacion',
+    claveDoc: 'CONDICIONES',
+    claveRespuesta: 'condiciones',
+    tipo: 'condiciones_aprobacion',
+    descripcion: 'Condiciones oficiales de aprobación.',
+  },
+];
+
+const documentos: SeedDocumento[] = [];
+for (const m of materias) {
+  for (const t of TIPOS_DOC) {
+    const nombreArchivo = `${m.prefijoArchivo}_${t.sufijo}.pdf`;
+    documentos.push({
+      id: documentos.length + 1,
+      clave: `DOC_${m.codigo}_${t.claveDoc}`,
+      nombre: nombreArchivo,
+      descripcion: t.descripcion,
+      tipo: t.tipo,
+      mime_type: 'application/pdf',
+      drive_file_id: null,
+      drive_nombre_archivo: nombreArchivo,
+      drive_view_url: null,
+      vigente: true,
+      estado: 'vigente',
+      vigencia_desde: null,
+      actualizado_en: null,
+      sincronizado_en: null,
+    });
+  }
+}
+
+/* ==========================================================================
+ * 4. Respuestas
+ * ======================================================================== */
+const respuestas: SeedRespuesta[] = [
+  {
+    id: 1,
+    clave: 'ADM_INSCRIPCIONES',
+    texto:
+      'Las inscripciones a materias se realizan a través del SIU Guaraní, en el período habilitado por Bedelía. Ingresá con tu usuario y contraseña, seleccioná "Inscripción a materias" y elegí las comisiones disponibles. Si tenés dudas sobre el calendario de inscripciones, escribí a bedelia.ifts29@bue.edu.ar.',
+    orden: 1,
+    activo: true,
+  },
+  {
+    id: 2,
+    clave: 'ADM_EXAMENES_MESAS',
+    texto:
+      'Las mesas de examen se publican en el SIU Guaraní con 7 días de anticipación. Para inscribirte, ingresá al sistema, seleccioná "Inscripción a exámenes" y elegí la materia y mesa.',
+    orden: 2,
+    activo: true,
+  },
+  {
+    id: 3,
+    clave: 'ADM_ACCESO_SIU',
+    texto:
+      'Para acceder al SIU Guaraní visitá https://guarani-autogestionagencia.bue.edu.ar/acceso. Tu usuario es tu número de legajo y la contraseña inicial es tu DNI. Si tenés problemas de acceso, contactá a Bedelía a través de bedelia.ifts29@bue.edu.ar.',
+    orden: 3,
+    activo: true,
+  },
+  {
+    id: 4,
+    clave: 'ADM_SIU_VS_CAMPUS',
+    texto:
+      'El Campus Virtual (https://aulasvirtuales.bue.edu.ar/) es el entorno educativo donde encontrás materiales de estudio, foros y entregas de trabajos prácticos. El SIU Guaraní es el sistema administrativo para gestionar inscripciones, historial académico y trámites. Usás el campus para estudiar y el SIU para gestionar tu situación académica.',
+    orden: 4,
+    activo: true,
+  },
+  {
+    id: 5,
+    clave: 'DERIVACION_GENERAL',
+    texto:
+      'Si no encontraste lo que buscabas, tu **tutora académica de este cuatrimestre** es MG María González (Tutora académica - mgonzalez@bue.edu.ar). Escribile y te va a orientar.\n' +
+      'Si tu consulta es administrativa o sobre el uso del campus, también podés escribir a Bedelía o a Asesoría Pedagógica:',
+    orden: 90,
+    activo: true,
+  },
+];
+
+// Respuestas por materia (una por materia, para que el mantenimiento sea granular).
+let respuestaSeq = respuestas.length;
+const claveRespuesta = (m: MateriaSeed, sufijo: string): string => `${m.codigo}_${sufijo}`;
+
+for (const m of materias) {
+  respuestas.push({
+    id: ++respuestaSeq,
+    clave: claveRespuesta(m, 'dias_cursada'),
+    texto: DIAS_CURSADA,
+    orden: 1,
+    activo: true,
+  });
+  respuestas.push({
+    id: ++respuestaSeq,
+    clave: claveRespuesta(m, 'condiciones'),
+    texto: `Estas son las condiciones oficiales de aprobación de ${m.nombre}. Leé el documento vigente y, si tenés una duda puntual, escribí a tu tutora académica.`,
+    orden: 2,
+    activo: true,
+  });
+  respuestas.push({
+    id: ++respuestaSeq,
+    clave: claveRespuesta(m, 'programa'),
+    texto: `Este es el programa vigente de ${m.nombre}, con contenidos, bibliografía y criterios de evaluación.`,
+    orden: 3,
+    activo: true,
+  });
+  respuestas.push({
+    id: ++respuestaSeq,
+    clave: claveRespuesta(m, 'cronograma'),
+    texto: `Este es el cronograma vigente de ${m.nombre}, con las fechas de entrega de los trabajos prácticos.`,
+    orden: 4,
+    activo: true,
+  });
+}
+
+/* ==========================================================================
+ * 5. Respuesta <-> Documento
+ * ======================================================================== */
+const respuestaDocumento: SeedRespuestaDocumento[] = [];
+for (const m of materias) {
+  TIPOS_DOC.forEach((t, i) => {
+    const claveDoc = `DOC_${m.codigo}_${t.claveDoc}`;
+    const claveRsp = claveRespuesta(m, t.claveRespuesta);
+    const doc = documentos.find((d) => d.clave === claveDoc);
+    const resp = respuestas.find((r) => r.clave === claveRsp);
+    if (!doc || !resp) {
+      throw new Error(`Seed inconsistente: falta documento o respuesta para ${claveDoc} / ${claveRsp}`);
+    }
+    respuestaDocumento.push({ respuesta_id: resp.id, documento_id: doc.id, orden: i + 1 });
+  });
+}
+
+/* ==========================================================================
+ * 6. Opciones del menú
+ * ======================================================================== */
+interface OpcionSeedDef {
+  clave: string;
+  cat: string;
+  etiqueta: string;
+  tipo: TipoOpcionDb;
+  destino?: string;
+  resp?: string;
+  volver?: boolean;
+  orden: number;
+}
+
+const definiciones: OpcionSeedDef[] = [
+  // --- RAIZ
+  { clave: 'RAIZ_OP_ADMIN', cat: 'RAIZ', etiqueta: 'Consultas administrativas', tipo: 'navegar', destino: 'ADMINISTRATIVAS', orden: 1 },
+  { clave: 'RAIZ_OP_ACAD', cat: 'RAIZ', etiqueta: 'Consultas academicas', tipo: 'navegar', destino: 'ACADEMICAS', orden: 2 },
+  { clave: 'RAIZ_OP_NOFUE', cat: 'RAIZ', etiqueta: 'No encontre lo que busco', tipo: 'derivar', resp: 'DERIVACION_GENERAL', orden: 3 },
+
+  // --- ADMINISTRATIVAS
+  { clave: 'ADM_OP_VOLVER', cat: 'ADMINISTRATIVAS', etiqueta: '< Volver al menu anterior', tipo: 'navegar', destino: 'RAIZ', volver: true, orden: 1 },
+  { clave: 'ADM_OP_INSCRIPCIONES', cat: 'ADMINISTRATIVAS', etiqueta: 'Inscripciones', tipo: 'responder', resp: 'ADM_INSCRIPCIONES', orden: 2 },
+  { clave: 'ADM_OP_EXAMENES', cat: 'ADMINISTRATIVAS', etiqueta: 'Examenes/Mesas', tipo: 'responder', resp: 'ADM_EXAMENES_MESAS', orden: 3 },
+  { clave: 'ADM_OP_SIU', cat: 'ADMINISTRATIVAS', etiqueta: 'Acceso al SIU', tipo: 'responder', resp: 'ADM_ACCESO_SIU', orden: 4 },
+  { clave: 'ADM_OP_SIU_CAMPUS', cat: 'ADMINISTRATIVAS', etiqueta: 'Diferencias entre campus virtual y SIU', tipo: 'responder', resp: 'ADM_SIU_VS_CAMPUS', orden: 5 },
+
+  // --- ACADEMICAS
+  { clave: 'ACA_OP_VOLVER', cat: 'ACADEMICAS', etiqueta: '< Volver al menu anterior', tipo: 'navegar', destino: 'RAIZ', volver: true, orden: 1 },
+  { clave: 'ACA_OP_ABD', cat: 'ACADEMICAS', etiqueta: 'Administracion de Base de Datos', tipo: 'navegar', destino: 'M_ADMIN_BASE_DATOS', orden: 2 },
+  { clave: 'ACA_OP_EAM', cat: 'ACADEMICAS', etiqueta: 'Analisis Matematico', tipo: 'navegar', destino: 'M_ANALISIS_MATEMATICO', orden: 3 },
+  { clave: 'ACA_OP_LC', cat: 'ACADEMICAS', etiqueta: 'Logica Computacional', tipo: 'navegar', destino: 'M_LOGICA_COMPUTACIONAL', orden: 4 },
+  { clave: 'ACA_OP_TP', cat: 'ACADEMICAS', etiqueta: 'Tecnicas de Programacion', tipo: 'navegar', destino: 'M_TECNICAS_PROGRAMACION', orden: 5 },
+];
+
+// Submenú idéntico para las 4 materias (misma lógica, RF02).
+for (const m of materias) {
+  definiciones.push(
+    { clave: `${m.codigo}_OP_VOLVER`, cat: m.catClave, etiqueta: '< Volver al menu anterior', tipo: 'navegar', destino: 'ACADEMICAS', volver: true, orden: 1 },
+    { clave: `${m.codigo}_OP_DIAS`, cat: m.catClave, etiqueta: 'Dias de cursada por comision', tipo: 'responder', resp: claveRespuesta(m, 'dias_cursada'), orden: 2 },
+    { clave: `${m.codigo}_OP_COND`, cat: m.catClave, etiqueta: 'Condiciones de aprobacion', tipo: 'responder', resp: claveRespuesta(m, 'condiciones'), orden: 3 },
+    { clave: `${m.codigo}_OP_PROG`, cat: m.catClave, etiqueta: 'Programa', tipo: 'responder', resp: claveRespuesta(m, 'programa'), orden: 4 },
+    { clave: `${m.codigo}_OP_CRONO`, cat: m.catClave, etiqueta: 'Cronograma', tipo: 'responder', resp: claveRespuesta(m, 'cronograma'), orden: 5 },
+  );
+}
+
+const opciones: SeedOpcion[] = definiciones.map((d, i) => ({
+  id: i + 1,
+  clave: d.clave,
+  categoria_id: categorias.find((c) => c.clave === d.cat)!.id,
+  etiqueta: d.etiqueta,
+  descripcion: null,
+  tipo: d.tipo,
+  categoria_destino_id: d.destino ? categorias.find((c) => c.clave === d.destino)!.id : null,
+  respuesta_id: d.resp ? respuestas.find((r) => r.clave === d.resp)!.id : null,
+  es_volver: d.volver ?? false,
+  icono: null,
+  orden: d.orden,
+  activo: true,
+}));
+
+/* ==========================================================================
+ * 7. Contactos por opción (derivación)
+ * ======================================================================== */
+const noEncontradoOpcion = opciones.find((o) => o.clave === 'RAIZ_OP_NOFUE')!;
+const opcionContacto: SeedOpcionContacto[] = contactos.map((c, i) => ({
+  opcion_id: noEncontradoOpcion.id,
+  contacto_id: c.id,
+  orden: c.orden ?? i + 1,
+}));
+
+/* ==========================================================================
+ * 8. Contextos (datos institucionales y por comisión - RF06)
+ * ======================================================================== */
+const contextos: SeedContexto[] = [
+  { id: 1, clave: 'url_campus_virtual', nombre: 'Campus Virtual', valor: 'https://aulasvirtuales.bue.edu.ar/', ambito_tipo: null, ambito_clave: null, grupo: 'institucional', orden: 1, activo: true },
+  { id: 2, clave: 'url_siu', nombre: 'SIU Guaraní', valor: 'https://guarani-autogestionagencia.bue.edu.ar/acceso', ambito_tipo: null, ambito_clave: null, grupo: 'institucional', orden: 2, activo: true },
+  { id: 3, clave: 'email_bedelia', nombre: 'Bedelía', valor: 'bedelia.ifts29@bue.edu.ar', ambito_tipo: null, ambito_clave: null, grupo: 'institucional', orden: 3, activo: true },
+  { id: 4, clave: 'cuatrimestre_vigente', nombre: 'Cuatrimestre vigente', valor: '2C 2026', ambito_tipo: null, ambito_clave: null, grupo: 'institucional', orden: 4, activo: true },
+  { id: 5, clave: 'modalidad', nombre: 'Modalidad', valor: 'Virtual sincrónica', ambito_tipo: null, ambito_clave: null, grupo: 'institucional', orden: 5, activo: true },
+  { id: 6, clave: 'dias_cursada', nombre: 'Comisión A', valor: 'Lunes y Miércoles de 18:00 a 21:00 hs', ambito_tipo: 'comision', ambito_clave: 'comision_a', grupo: 'dias_cursada', orden: 1, activo: true },
+  { id: 7, clave: 'dias_cursada', nombre: 'Comisión B', valor: 'Martes y Jueves de 8:00 a 11:00 hs', ambito_tipo: 'comision', ambito_clave: 'comision_b', grupo: 'dias_cursada', orden: 2, activo: true },
+  { id: 8, clave: 'dias_cursada', nombre: 'Comisión C', valor: 'Viernes de 14:00 a 20:00 hs', ambito_tipo: 'comision', ambito_clave: 'comision_c', grupo: 'dias_cursada', orden: 3, activo: true },
+];
+
+export const seedData: SeedData = {
+  categorias,
+  opciones,
+  respuestas,
+  documentos,
+  respuestaDocumento,
+  contactos,
+  opcionContacto,
+  contextos,
+  opcionContexto: [],
+};
+
+/** Categoría raíz del árbol de menú. */
+export const SEED_CATEGORIA_RAIZ = 'RAIZ';
