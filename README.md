@@ -44,34 +44,39 @@ npm run dev:web
 - Interfaz: <http://localhost:5173>
 - API: <http://localhost:3000/api/health>
 
-Sin `DATABASE_URL` la API responde con el **catálogo semilla local**
-(`origen: "seed"`), que contiene exactamente el mismo contenido que
-`db/002_seed.sql`. Es el modo recomendado para desarrollo y para la
-demostración de la defensa.
+Sin `DATABASE_URL` la API responde con el **catálogo local**, que contiene
+exactamente el mismo contenido que `db/002_seed.sql` (menú) y `db/005_kb_seed.sql`
+(base de conocimiento). Es el modo recomendado para desarrollo y para la
+demostración: no necesita red ni base de datos, y las consultas escritas se
+resuelven igual que en Neon porque el motor y los umbrales son los mismos.
+
+Para trabajar contra la base real, agregar `DATABASE_URL` al `.env` (sección 4).
 
 ## 3. Estructura del proyecto
 
 ```
 .
-├── api/index.ts            # Entry point de la función serverless de Vercel
+├── .env.example             # Plantilla de configuración (copiar a .env)
+├── api/index.ts             # Entry point de la función serverless de Vercel
 ├── db/
-│   ├── 001_schema.sql      # DDL: tablas, índices, triggers, vista de control
-│   ├── 002_seed.sql        # Contenido inicial (idempotente)
-│   ├── 003_verificacion.sql# Comprueba que las consultas de la app funcionan
-│   ├── 004_kb_schema.sql   # Base de conocimiento conversacional + pg_trgm
-│   └── 005_kb_seed.sql     # Intenciones, preguntas y variantes (generado)
-├── backend/src/
-│   ├── db/                 # pool.ts (Neon), catalogo.ts (consultas), push.ts
-│   ├── routes/             # menu, chat, system (health / metricas / sync)
-│   ├── services/           # chat.service, nl.service, drive.service, metricas
-│   ├── middleware/         # CORS + cabeceras, rate limit, errores
-│   ├── seed/catalogo.ts    # Catálogo semilla equivalente a 002_seed.sql
-│   ├── seed/conocimiento.ts# Base de conocimiento semilla equivalente a 005
-│   └── utils/              # env.ts, errors.ts
+│   ├── 001_schema.sql       # DDL: tablas, índices, triggers, vista de control
+│   ├── 002_seed.sql         # Contenido del menú (idempotente)
+│   ├── 003_verificacion.sql # Comprueba contra PostgreSQL real que todo responde
+│   ├── 004_kb_schema.sql    # Base de conocimiento conversacional + pg_trgm
+│   └── 005_kb_seed.sql      # Intenciones, preguntas y variantes (generado)
+├── backend/
+│   ├── src/
+│   │   ├── db/              # pool.ts (Neon), catalogo.ts, conocimiento.ts, push.ts
+│   │   ├── routes/          # menu, chat, system (health / metricas / sync)
+│   │   ├── services/        # chat, nl (intérprete), drive, metricas
+│   │   ├── middleware/      # CORS + cabeceras, rate limit, errores
+│   │   ├── seed/            # catálogo y base de conocimiento en memoria
+│   │   └── utils/           # env.ts, normalizar.ts, errors.ts
+│   └── test/                # 40 tests con node:test (sin dependencias extra)
 ├── frontend/
-│   ├── public/widget.js    # Script inyector para Moodle
-│   └── src/                # ChatWidget, tarjetas, burbujas, estilos
-└── vercel.json             # Frontend estático + API en un mismo proyecto
+│   ├── public/widget.js     # Script inyector para Moodle
+│   └── src/                 # ChatWidget + compositor, tarjetas, burbujas, estilos
+└── vercel.json              # Frontend estático + API en un mismo proyecto
 ```
 
 ## 4. Configuración
@@ -135,16 +140,18 @@ consulta es una petición HTTPS.
 
 ## 5. Base de datos
 
-```bash
-# Crear la base y cargar esquema + contenido
-DATABASE_URL=postgresql://... npm run db:push
+Con `DATABASE_URL` en el `.env`:
 
-# Recrear desde cero
-DATABASE_URL=postgresql://... npm run db:reset
+```bash
+npm run db:push     # aplica esquema + contenido (idempotente)
+npm run db:reset    # borra el esquema public y lo vuelve a crear
 ```
 
-Ambos scripts son **idempotentes** (`CREATE ... IF NOT EXISTS` y
-`ON CONFLICT DO UPDATE`), así que se pueden reejecutar sin romper nada.
+`db:push` aplica, en orden, `001_schema.sql`, `002_seed.sql`, `004_kb_schema.sql`
+y `005_kb_seed.sql`, y al final muestra los conteos de cada tabla. Es
+**idempotente** (`CREATE ... IF NOT EXISTS` y `ON CONFLICT DO UPDATE`), así que
+se puede reejecutar sin romper nada: es la forma normal de actualizar el catálogo
+cuando cambia un texto del menú o se agrega una variante.
 
 `db/001_schema.sql` define:
 
@@ -163,25 +170,40 @@ Ambos scripts son **idempotentes** (`CREATE ... IF NOT EXISTS` y
 
 Cada intención apunta a una opción de `opcion_menu` y a una `respuesta` ya
 validada (`ON DELETE RESTRICT`): el contenido no se duplica ni se genera, se
-reutiliza. `db/005_kb_seed.sql` se **genera** desde el catálogo semilla de
-TypeScript:
+reutiliza.
+
+### Ampliar la base de conocimiento
+
+El contenido de la KB vive en `backend/src/seed/conocimiento.ts` y
+`db/005_kb_seed.sql` es su espejo generado. Para sumar una redacción nueva:
+
+1. Agregar el texto en `conMateria` del tema correspondiente, o crear un tema
+   nuevo si la consulta es administrativa.
+2. `npm run db:kb --workspace backend` → regenera `db/005_kb_seed.sql`.
+3. `npm test --workspace backend` → falla si el SQL y el TypeScript se
+   desalinean, si una variante queda repetida o si falta el `ON CONFLICT`.
+4. `npm run db:push` → sube el cambio a Neon.
 
 ```bash
 npm run db:kb --workspace backend   # regenera db/005_kb_seed.sql
-npm test --workspace backend        # falla si el SQL y el seed TS se desalinean
+npm test --workspace backend        # valida paridad e idempotencia
 ```
 
-### Verificación
+### Verificación contra PostgreSQL real
 
-`db/003_verificacion.sql` ejecuta las mismas consultas que usa la aplicación:
+`db/003_verificacion.sql` ejecuta las mismas consultas que usa la aplicación, más
+las de la base de conocimiento:
 
 ```bash
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/003_verificacion.sql
 ```
 
-Comprueba la navegación, las respuestas, el aislamiento de documentos por
-materia, los contactos, el submenú contextual, el `UPSERT` de métricas, el
-`UPDATE` de sincronización y la vista de mantenimiento.
+Debe terminar con `VERIFICACION COMPLETA` y sin errores. Las secciones 16 a 21
+son las de la KB: integridad referencial (todo en 0), qué intención reutiliza qué
+opción, en qué casos la coincidencia exacta exige **aclaración**, qué tan cerca
+queda una consulta mal escrita, la cobertura por intención y los textos
+genéricos compartidos. Esa última lista es la que sirve para calibrar
+`KB_UMBRAL_MEDIO`.
 
 ## 6. API
 
@@ -238,7 +260,9 @@ Códigos: `VALIDATION_ERROR`, `NOT_FOUND`, `RATE_LIMITED`,
    letras repetidas recortadas (`normalizar`, el mismo código que carga las
    variantes).
 2. **Regla de saludos**: `hola`, `buen día`… devuelven el menú raíz.
-3. **Coincidencia exacta** sobre `normalized_text` (índice B-tree).
+3. **Coincidencia exacta** sobre `normalized_text` (índice B-tree). Si el texto
+   coincide con variantes de varias intenciones, se devuelven **todas**: es el
+   caso que dispara la aclaración.
 4. **Similitud trigram** (`pg_trgm`), con el mismo coeficiente que la función en
    memoria para que el modo demo y Neon se comporten igual.
 5. **Umbrales**: confianza alta → respuesta; media → aclaración con opciones del
@@ -247,6 +271,31 @@ Códigos: `VALIDATION_ERROR`, `NOT_FOUND`, `RATE_LIMITED`,
 Los umbrales se configuran por entorno (`KB_UMBRAL_ALTO`, `KB_UMBRAL_MEDIO`,
 `KB_MARGEN_AMBIGUEDAD`, `KB_MAX_MENSAJE`, `KB_MAX_OPCIONES_ACLARACION`). Son
 valores iniciales, pensados para calibrarse con consultas reales.
+
+### Comportamiento esperado
+
+| Consulta del estudiante | Resultado |
+| --- | --- |
+| `¿Cómo accedo al SIU Guaraní?` | Respuesta con su enlace |
+| `programa de técnicas de programación` | Respuesta del programa correcto |
+| `programa` | **Aclaración** entre las 4 materias |
+| `¿cuándo empiezan las clases?` | **Aclaración** entre las 4 materias |
+| `como puedo accder al siu guarani` | Respuesta por similitud (tolerante a errores) |
+| `quiero cambiarme de comisión` | `no_disponible`: no está cargado |
+| `hola` | Menú raíz |
+
+La diferencia entre las filas de aclaración y la de respuesta directa con materia
+es intencional: cuando la consulta dice **qué materia** se resuelve sola; cuando
+es **genérica** se pregunta, porque cada materia puede tener una respuesta
+distinta.
+
+### En la interfaz
+
+El compositor está debajo de las opciones: `Enter` envía, `Shift+Enter` hace una
+línea nueva, acepta entre 2 y 800 caracteres (la API los revalida) y el botón de
+enviar se habilita solo cuando hay texto válido. Al resolver una consulta
+escrita, el menú **no se borra**: el estudiante puede seguir explorando sin
+reiniciar.
 
 ## 7. Sincronización con Google Drive
 
@@ -265,8 +314,8 @@ curl -X POST https://<deploy>/api/sync \
      -H 'Content-Type: application/json' -d '{"dryRun": false}'
 ```
 
-先用 `dryRun: true` para ver qué se emparejaría y qué quedaría sin
-coincidencia, sin escribir nada.
+Usar `dryRun: true` para ver qué se emparejaría y qué quedaría sin coincidencia,
+sin escribir nada.
 
 **El emparejamiento es exacto, por diseño.** Se compara el `fileId` conocido o
 el nombre normalizado completo. No hay coincidencia aproximada por prefijo: en
@@ -298,6 +347,10 @@ vercel env add GOOGLE_SHARED_FOLDER_ID production
 vercel env add SYNC_SECRET production
 vercel --prod
 ```
+
+También hay que cargar las `VITE_*`, que se incrustan en el bundle en tiempo de
+build (`VITE_API_BASE_URL`, `VITE_ALLOWED_ORIGINS`, `VITE_INSTITUTO_NOMBRE`,
+`VITE_INSTITUTO_SUBTITULO`); si se cambian, hay que volver a desplegar.
 
 `vercel.json` ya define el build (`frontend/dist`), la función `api/index.ts` y
 los *rewrites*.
@@ -358,6 +411,26 @@ Los mensajes entre el iframe y la página padre usan un `targetOrigin` explícit
 | `npm run db:push` | Aplica `001_schema.sql` + `002_seed.sql` + las migraciones de la KB en Neon |
 | `npm run db:reset` | Borra el esquema y lo vuelve a crear |
 | `npm run db:kb --workspace backend` | Regenera `db/005_kb_seed.sql` desde el seed de TypeScript |
+
+### Qué cubren los tests
+
+`npm test --workspace backend` corre 40 tests con `node:test`, sin dependencias
+extra y **siempre contra el catálogo local**, nunca contra Neon (el `.env` se
+neutraliza a propósito, para que la suite no dependa de la red).
+
+| Archivo | Qué verifica |
+| --- | --- |
+| `normalizar.test.ts` | Normalización y el coeficiente trigram, contra los casos del código de `pg_trgm` |
+| `conocimiento.test.ts` | Matching exacto y por similitud, y que la ambigüedad se preserve |
+| `nl.service.test.ts` | Desenlaces del intérprete: respuesta, aclaración, `no_disponible`, saludo |
+| `api.test.ts` | Contrato HTTP de `/api/chat` sobre la app real (Express en un puerto efímero) |
+| `kb-seed.test.ts` | Paridad del seed TS y el SQL, idempotencia y ausencia de BOM |
+| `sql-coincide.test.ts` | Que cada columna usada por el SQL exista en los DDL |
+
+Este último es el que evita el tipo de falla más difícil de detectar: el esquema
+usa `clave`/`nombre`/`pregunta` y el seed de TypeScript `key`/`name`/`question`.
+Si uno se desalinea, el modo demo sigue funcionando y la falla aparece recién en
+Neon.
 
 ## 11. Privacidad
 
