@@ -11,8 +11,8 @@ interface PropsOpciones {
 export const prefijoContexto = 'ctx:';
 
 /**
- * Lista de botones del menú. Es el único mecanismo de interacción del MVP:
- * no hay campo de texto libre (RF05).
+ * Lista de botones del menú. Es uno de los dos caminos de interacción: el otro
+ * es el compositor de consulta escrita, que termina en la misma opción (RF05).
  */
 export function OptionList({ opciones, deshabilitado, onSeleccionar }: PropsOpciones) {
   if (opciones.length === 0) return null;

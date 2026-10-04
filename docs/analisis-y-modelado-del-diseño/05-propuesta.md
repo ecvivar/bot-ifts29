@@ -2,7 +2,9 @@
 
 ## Resumen Ejecutivo
 
-Syntax SRL propone al IFTS N.°29 el desarrollo de un **asistente virtual institucional** accesible, anónimo y basado en un menú de categorías, que centralice la información de ingreso en un único canal de consulta permanentemente disponible.
+Syntax SRL propone al IFTS N.°29 el desarrollo de un **asistente virtual institucional** accesible, anónimo y de interacción híbrida, que centralice la información de ingreso en un único canal de consulta permanentemente disponible.
+
+El estudiante puede recorrer un **menú guiado por niveles** o **escribir su consulta en lenguaje natural**. En ambos casos recibe la misma respuesta institucional verificada: la consulta escrita no genera contenido nuevo, interpreta la intención y la mapea a la opción del menú que ya existe.
 
 La solución entrega respuestas verificadas contra fuentes institucionales vigentes y, cuando no existe una respuesta adecuada, informa contacto institucional preciso. De este modo:
 

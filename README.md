@@ -196,11 +196,11 @@ las de la base de conocimiento:
 psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/003_verificacion.sql
 ```
 
-Debe terminar con `VERIFICACION COMPLETA` y sin errores. Las secciones 16 a 21
-son las de la KB: integridad referencial (todo en 0), qué intención reutiliza qué
-opción, en qué casos la coincidencia exacta exige **aclaración**, qué tan cerca
-queda una consulta mal escrita, la cobertura por intención y los textos
-genéricos compartidos. Esa última lista es la que sirve para calibrar
+Debe terminar con `VERIFICACION COMPLETA` y sin errores. Las secciones 15 a 22
+son las de la KB: volumen, integridad referencial (todo en 0), qué intención
+reutiliza qué opción, en qué casos la coincidencia exacta exige **aclaración**,
+qué tan cerca queda una consulta mal escrita, la cobertura por intención y los
+textos genéricos compartidos. Esa última lista es la que sirve para calibrar
 `KB_UMBRAL_MEDIO`.
 
 ## 6. API

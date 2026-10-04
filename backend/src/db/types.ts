@@ -52,7 +52,8 @@ export interface OpcionContexto {
   valor: string | null;
 }
 
-/** Opcion seleccionable del menu. Sin campo de texto libre (RF05). */
+/** Opcion seleccionable del menu: es la respuesta autorizada a la que también
+ *  mapea una consulta escrita, asi que no lleva texto propio (RF05). */
 export interface OpcionMenu {
   clave: string;
   etiqueta: string;
