@@ -12,4 +12,5 @@ npm-debug.log*
 coverage/
 *.tsbuildinfo
 service-account*.json
-.docs
+.vercel
+.env*
