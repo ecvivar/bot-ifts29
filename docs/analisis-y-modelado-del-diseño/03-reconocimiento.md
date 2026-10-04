@@ -1,4 +1,4 @@
-# 4. Fase de Reconocimiento
+# 3. Fase de Reconocimiento
 
 ## 1. Definición del Problema o Necesidad
 

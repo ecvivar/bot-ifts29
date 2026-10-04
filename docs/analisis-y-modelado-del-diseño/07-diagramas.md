@@ -1,4 +1,4 @@
-# 8. Diseño de Diagramas
+# 7. Diseño de Diagramas
 
 Diagramas UML y arquitectónicos del sistema, generados con Lucidchart.
 

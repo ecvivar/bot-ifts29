@@ -1,4 +1,4 @@
-# 3. Organización Interna / Gestión de Talentos Humanos
+# 2. Organización Interna / Gestión de Talentos Humanos
 
 ## Estructura del Equipo
 

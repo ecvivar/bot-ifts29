@@ -1,4 +1,4 @@
-# 7. Análisis del Diseño y Requerimientos
+# 6. Análisis del Diseño y Requerimientos
 
 ## Requerimientos Funcionales (RF)
 
@@ -10,7 +10,7 @@
 | RF02 | Responder consultas académicas básicas sobre las 4 materias del cuatrimestre: modalidad de cursada, docentes responsables, comisión, cronograma, programa, horarios/encuentros sincrónicos, prácticas formativas obligatorias y canales de consulta. Las condiciones de aprobación solo se incluyen si están explícitas en documentación oficial; no deben inferirse. |
 | RF03 | Responder consultas sobre la modalidad virtual: acceso al campus, ingreso a aulas, descarga de materiales, foros, encuentros sincrónicos, canales institucionales, y funciones de docentes/tutores/bedelía/asesoría pedagógica. |
 | RF04 | Cuando el estudiante no encuentra lo que busca en las categorías anteriores ("No encontré lo que busco"), mostrar el contacto de la persona o área correspondiente (nombre, rol, mail y/o enlace de perfil) junto con el motivo. La derivación es siempre asincrónica: el sistema no inicia ni gestiona una conversación en tiempo real, ni envía nada en nombre del estudiante. |
-| RF05 | Todas las consultas se resuelven mediante un menú de accesos rápidos por niveles (categoría → subcategoría → respuesta); no hay campo de texto libre. |
+| RF05 | El estudiante puede consultar de dos formas: (1) menú guiado por niveles (categoría → subcategoría → respuesta), o (2) texto libre (el sistema interpreta la intención y mapea a respuestas del menú existente). No genera respuestas nuevas; reinterpreta la consulta contra la base de conocimiento del menú. |
 | RF06 | Cuando la respuesta dependa de datos contextuales (materia, comisión, docente, tipo de trámite, momento de la cursada), solicitarlos al estudiante mediante el propio menú, sin pedir datos personales o sensibles. |
 
 ### Fuentes y confiabilidad de las respuestas

@@ -1,4 +1,4 @@
-# 2. Alcance del Proyecto
+# 1. Alcance del Proyecto
 
 ## Objetivo del Software
 

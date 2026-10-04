@@ -1,4 +1,4 @@
-# 9. Prototipo Interactivo
+# 8. Prototipo Interactivo
 
 Prototipo de interfaz del asistente virtual desarrollado en Figma, validando flujos de usuario, componentes visuales y experiencia de interacción.
 
