@@ -8,7 +8,7 @@ El desarrollo se realiza en **7 fases iterativas** con entregas incrementales, v
 
 ## Fase 1: Análisis y Requerimientos
 
-**Duración estimada:** 2-3 semanas
+**Duración estimada:** 1.5-2 semanas (27 ago - 10 sep)
 
 ### Actividades
 
@@ -35,7 +35,7 @@ El desarrollo se realiza en **7 fases iterativas** con entregas incrementales, v
 
 ## Fase 2: Diseño del Sistema
 
-**Duración estimada:** 3-4 semanas
+**Duración estimada:** 2.5-3 semanas (11 sep - 4 oct) — CIERRE: 4 OCTUBRE
 
 ### Actividades
 
@@ -65,7 +65,7 @@ El desarrollo se realiza en **7 fases iterativas** con entregas incrementales, v
 
 ## Fase 3: Desarrollo e Implementación
 
-**Duración estimada:** 5-7 semanas
+**Duración estimada:** 3-4 semanas (5 oct - 2 nov)
 
 ### Actividades
 
@@ -107,7 +107,7 @@ El desarrollo se realiza en **7 fases iterativas** con entregas incrementales, v
 
 ## Fase 4: Pruebas y Control de Calidad
 
-**Duración estimada:** 2-3 semanas (paralela a última parte de Fase 3)
+**Duración estimada:** 1.5-2 semanas (26 oct - 9 nov, paralela a última parte de Fase 3)
 
 ### Actividades
 
@@ -147,7 +147,7 @@ El desarrollo se realiza en **7 fases iterativas** con entregas incrementales, v
 
 ## Fase 5: Preparación de Capacitación
 
-**Duración estimada:** 1-2 semanas (final de Fase 4)
+**Duración estimada:** 0.5-1 semana (10-15 nov, paralela a cierre de Fase 4)
 
 ### Actividades
 
@@ -254,15 +254,17 @@ El desarrollo se realiza en **7 fases iterativas** con entregas incrementales, v
 
 ## Timeline Real (MVP)
 
-**Período:** 27 de agosto de 2026 → 15 de noviembre de 2026
+**Período:** 27 de agosto de 2026 → 15 de noviembre de 2026 (11 semanas)
 
 ```
-Semana  1-3 (27 ago - 16 sep): Análisis y Requerimientos
-Semana  4-5 (17 sep - 04 oct): Diseño del Sistema (cierre 04/10)
-Semana  6-10 (05 oct - 09 nov): Desarrollo e Implementación
-Semana 11 (10-15 nov):          Testing intensivo, Capacitación y Go-Live
+Semana 1-2 (27 ago - 10 sep):      Fase 1: Análisis y Requerimientos
+Semana 3-5 (11 sep - 04 oct):      Fase 2: Diseño del Sistema (CIERRE: 4 OCT)
+Semana 6-9 (05 oct - 02 nov):      Fase 3: Desarrollo e Implementación
+Semana 8-9 (26 oct - 09 nov):      Fase 4: Testing QA (paralelo a Fase 3)
+Semana 10-11 (10-15 nov):          Fase 5: Capacitación + Go-Live (15 NOV)
 ```
 
+**Hito crítico:** Cierre Diseño el 4 de octubre  
 **Hito de Go-Live:** 15 de noviembre de 2026
 
 ---

@@ -11,15 +11,19 @@ La institución IFTS N.°29 enfrenta una problemática recurrente en el proceso 
 - **Falta de uniformidad en respuestas**: Distintas áreas responden con distintas formulaciones, generando confusión
 - **Sobrecarga de personal no docente**: Bedelía, tutores y asesoría pedagógica dedican tiempo a responder las mismas preguntas
 
+### Diferenciación Propuesta
+
+Se realizó una primer propuesta con un asistente que **solo ofreciera menú guiado**. La retroalimentación fue que sería equivalente a un Genially o documento interactivo estático. Es necesario un salto cualitativo surge de la **capacidad de interpretar consultas en lenguaje natural (texto libre)**: el estudiante formula su pregunta como la piensa, y el sistema la mapea inteligentemente a respuestas en la base de conocimiento. Esto replica el comportamiento de una persona consultando, no una navegación menu-driven.
+
 ### Pregunta Central
 
-*"¿Cómo centralizar y estructurar la información para ingresantes de forma que sea accesible 24/7, confiable, y reduzca la carga operativa de personal administrativo?"*
+*"¿Cómo centralizar y estructurar la información para ingresantes de forma que sea accesible 24/7, confiable, y reduzca la carga operativa — permitiendo que los estudiantes consulten de forma natural (menú guiado O texto libre) sin diferencia de experiencia?"*
 
 ---
 
 ## 2. Estudio de Viabilidad
 
-### Viabilidad Técnica ✅
+### Viabilidad Técnica
 
 **Pregunta:** ¿Es posible desarrollar el software con tecnologías actuales?
 
@@ -29,9 +33,9 @@ La institución IFTS N.°29 enfrenta una problemática recurrente en el proceso 
 - Google Drive API es estable y accesible
 - Vercel ofrece hosting serverless sin necesidad de administración de infraestructura
 
-**Conclusión:** ✅ **VIABLE** — Todas las tecnologías son probadas y cuentan con comunidades activas
+**Conclusión:** **VIABLE** — Todas las tecnologías son probadas y cuentan con comunidades activas
 
-### Viabilidad Económica ✅
+### Viabilidad Económica
 
 **Preguntas:** ¿Cuánto tiempo llevará? ¿Cuál es el costo estimado? ¿Qué licencia usar?
 
@@ -42,9 +46,9 @@ La institución IFTS N.°29 enfrenta una problemática recurrente en el proceso 
 - **Tiempo:** ~11 semanas (27 ago - 15 nov 2026) con equipo de 5 personas
 - **Licencia:** MIT (código abierto, permite reutilización y modificación)
 
-**Conclusión:** ✅ **VIABLE** — Costos mínimos, herramientas gratuitas
+**Conclusión:** **VIABLE** — Costos mínimos, herramientas gratuitas
 
-### Viabilidad Operativa ✅
+### Viabilidad Operativa
 
 **Pregunta:** ¿El sistema se integrará efectivamente en las operaciones del IFTS?
 
@@ -57,7 +61,7 @@ La institución IFTS N.°29 enfrenta una problemática recurrente en el proceso 
 - **Actualización de contenido:** Proceso definido, no depende de deployments
 - **Performance:** Serverless garantiza escalabilidad en picos (ingreso marzo/agosto)
 
-**Conclusión:** ✅ **VIABLE** — Integración no requiere cambios profundos en infraestructura
+**Conclusión:** **VIABLE** — Integración no requiere cambios profundos en infraestructura
 
 ---
 
@@ -139,11 +143,11 @@ Se relevaron **7 instituciones de educación superior** con chatbots/asistentes 
 
 ### Indicadores de Éxito
 
-- ✅ Sistema en producción, accesible desde Moodle
-- ✅ Metricas de uso muestran adopción por estudiantes
-- ✅ Personal institucional reporte reducción en consultas repetitivas
-- ✅ Cero exposición de datos personales
-- ✅ Documentación lista para mantenimiento
+- Sistema en producción, accesible desde Moodle
+- Metricas de uso muestran adopción por estudiantes
+- Personal institucional reporte reducción en consultas repetitivas
+- Cero exposición de datos personales
+- Documentación lista para mantenimiento
 
 ---
 
@@ -151,10 +155,8 @@ Se relevaron **7 instituciones de educación superior** con chatbots/asistentes 
 
 | Aspecto | Hallazgo |
 |--------|----------|
-| **Viabilidad Técnica** | ✅ Comprobada — stack maduro, sin depencias problemáticas |
-| **Viabilidad Económica** | ✅ Comprobada — costo anual mínimo, ROI positivo en reducción de consultas |
-| **Viabilidad Operativa** | ✅ Comprobada — integración posible sin cambios de infraestructura |
-| **Benchmarking** | ✅ Solución se alinea con prácticas de instituciones similares |
-| **Mercado** | ✅ No hay solución genérica; desarrollo a medida justificado |
-
-**Recomendación:** Proceder con desarrollo del MVP bajo metodología ágil.
+| **Viabilidad Técnica** | Comprobada — stack maduro, sin depencias problemáticas |
+| **Viabilidad Económica** | Comprobada — costo anual mínimo, ROI positivo en reducción de consultas |
+| **Viabilidad Operativa** | Comprobada — integración posible sin cambios de infraestructura |
+| **Benchmarking** | Solución se alinea con prácticas de instituciones similares |
+| **Mercado** | No hay solución genérica; desarrollo a medida justificado |
