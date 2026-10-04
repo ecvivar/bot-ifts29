@@ -775,8 +775,8 @@
 .ifts-entrada__campo {
   flex: 1 1 auto;
   min-width: 0;
-  min-height: 38px;
-  max-height: 88px;
+  min-height: 56px;
+  max-height: 120px;
   padding: 9px 11px;
   border: 1px solid var(--ifts-borde);
   border-radius: 10px;
