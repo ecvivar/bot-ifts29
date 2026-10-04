@@ -29,25 +29,24 @@ El sistema está diseñado para iniciarse como MVP en una cohorte (ingreso 2026)
 
 ### Recursos Humanos
 
-| Rol | Dedicación | Duración |
-|-----|-----------|----------|
-| Coordinadora | 50% | 20 semanas |
-| Analista Funcional | 60% | 20 semanas |
-| Diseñador | 70% | 15 semanas |
-| Desarrollador | 100% | 15 semanas |
-| Testing | 80% | 10 semanas |
-| **Esfuerzo Total** | — | **~340 persona/semana** |
+| Rol | Dedicación | Horas |
+|-----|-----------|-------|
+| Coordinadora | 50% | 20 h |
+| Analista Funcional | 60% | 24 h |
+| Diseñador | 70% | 28 h |
+| Desarrollador | 100% | 32 h |
+| Testing | 80% | 16 h |
+| **Esfuerzo Total** | — | **120 horas** |
 
 ### Recursos de Infraestructura
 
 | Recurso | Costo (Año 1) | Notas |
 |---------|---------------|-------|
-| Hosting (Vercel) | $0-20 | Tier gratuito + posible upgrade |
-| Base de Datos (Neon) | $0-30 | Tier gratuito + posible upgrade |
+| Hosting (Vercel) | $0 | Tier gratuito |
+| Base de Datos (Neon) | $0 | Tier gratuito |
 | Google Drive | $0 | API gratuita, solo lectura |
 | GitHub | $0 | Repo público |
-| Dominio | ~$12 | Si aplica (opcional) |
-| **Total Anual** | **~$40-60** | Presupuesto mínimo |
+| **Total Anual (MVP)** | **$0** | 100% free tier |
 
 ### Herramientas de Desarrollo
 
@@ -102,12 +101,12 @@ El sistema está diseñado para iniciarse como MVP en una cohorte (ingreso 2026)
 
 | Concepto | Costo |
 |----------|-------|
-| Desarrollo (340 persona/semana * tasa horaria) | $XX,XXX |
-| Infraestructura Año 1 | $60 |
+| Desarrollo (120 horas * tasa horaria) | **Bonificada** |
+| Infraestructura Año 1 | $20-50 |
 | Documentación y capacitación | Incluido |
-| **TOTAL MVP** | **Depende de estructura de costos** |
+| **TOTAL MVP** | **Según tasa horaria** |
 
-*Nota: Costos específicos a definir entre Syntax SRL e IFTS N.°29*
+**Nota:** Esfuerzo de 120 horas totales. Tasa horaria bonificada (valor especial para institución educativa) a acordar entre Syntax SRL e IFTS N.°29. Ejemplo: si $50/hora bonificado → $6,000 USD inversión total.
 
 ### Costo de Mantenimiento Anual (Post-MVP)
 
@@ -129,14 +128,3 @@ El sistema está diseñado para iniciarse como MVP en una cohorte (ingreso 2026)
 | Rendimiento con picos de carga | Baja | Alto | Prueba de carga en semana 15 |
 | Calidad de fuentes de Drive | Media | Medio | Proceso de validación antes de sync |
 | Disponibilidad de Vercel | Baja | Alto | SLA con Vercel; plan B con proveedor alternativo |
-
----
-
-## Próximos Pasos
-
-1. **Validación del Alcance:** Cliente confirma objetivos y límites
-2. **Firma de Contrato:** Acuerdos de términos y cronograma
-3. **Kick-off:** Reunión de inicio de proyecto con equipo completo
-4. **Fase 1:** Análisis y requerimientos detallados
-
-**Fecha Propuesta de Inicio:** Según disponibilidad de IFTS N.°29
