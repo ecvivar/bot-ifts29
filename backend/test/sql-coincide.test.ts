@@ -25,7 +25,7 @@ const leer = (ruta: string) => readFile(join(raiz, ruta), 'utf8');
 /** tablas -> columnas, segun los `CREATE TABLE` de los DDL. */
 async function esquema(): Promise<Map<string, Set<string>>> {
   const tablas = new Map<string, Set<string>>();
-  for (const archivo of ['db/001_schema.sql', 'db/004_kb_schema.sql']) {
+  for (const archivo of ['db/001_schema.sql']) {
     const sql = await leer(archivo);
     for (const m of sql.matchAll(
       /CREATE TABLE(?: IF NOT EXISTS)?\s+(\w+)\s*\(([\s\S]*?)\n\);/g,
@@ -106,7 +106,7 @@ test('cada columna usada por el SQL de la app existe en el esquema', async () =>
 
 test('el DDL y las migraciones no tienen BOM', async () => {
   // Un BOM invisible rompe `psql -f` con un error de sintaxis.
-  for (const archivo of ['db/001_schema.sql', 'db/002_seed.sql', 'db/003_verificacion.sql', 'db/004_kb_schema.sql', 'db/005_kb_seed.sql']) {
+  for (const archivo of ['db/001_schema.sql', 'db/002_seed.sql', 'db/003_verificacion.sql', 'db/005_kb_seed.sql']) {
     const sql = await leer(archivo);
     assert.equal(sql.charCodeAt(0) === 0xfeff, false, `${archivo} arranca con BOM`);
   }
@@ -116,7 +116,7 @@ test('las verificaciones de v_kb_resolucion usan columnas reales', async () => {
   // `v_kb_resolucion` se usa en 003_verificacion.sql: si el nombre de una
   // columna cambia en el DDL, la verificacion falla en la maquina del equipo.
   const tablas = await esquema();
-  const ddl = await leer('db/004_kb_schema.sql');
+  const ddl = await leer('db/001_schema.sql');
   const definicion = /CREATE OR REPLACE VIEW v_kb_resolucion AS([\s\S]*?);\s*$/m.exec(ddl);
   assert.ok(definicion, 'no se encontro la definicion de v_kb_resolucion');
 

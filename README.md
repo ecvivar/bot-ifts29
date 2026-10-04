@@ -59,10 +59,9 @@ Para trabajar contra la base real, agregar `DATABASE_URL` al `.env` (sección 4)
 ├── .env.example             # Plantilla de configuración (copiar a .env)
 ├── api/index.ts             # Entry point de la función serverless de Vercel
 ├── db/
-│   ├── 001_schema.sql       # DDL: tablas, índices, triggers, vista de control
+│   ├── 001_schema.sql       # DDL: menú, base de conocimiento, triggers y vistas
 │   ├── 002_seed.sql         # Contenido del menú (idempotente)
 │   ├── 003_verificacion.sql # Comprueba contra PostgreSQL real que todo responde
-│   ├── 004_kb_schema.sql    # Base de conocimiento conversacional + pg_trgm
 │   └── 005_kb_seed.sql      # Intenciones, preguntas y variantes (generado)
 ├── backend/
 │   ├── src/
@@ -147,26 +146,25 @@ npm run db:push     # aplica esquema + contenido (idempotente)
 npm run db:reset    # borra el esquema public y lo vuelve a crear
 ```
 
-`db:push` aplica, en orden, `001_schema.sql`, `002_seed.sql`, `004_kb_schema.sql`
-y `005_kb_seed.sql`, y al final muestra los conteos de cada tabla. Es
+`db:push` aplica, en orden, `001_schema.sql`, `002_seed.sql` y `005_kb_seed.sql`,
+y al final muestra los conteos de cada tabla. Es
 **idempotente** (`CREATE ... IF NOT EXISTS` y `ON CONFLICT DO UPDATE`), así que
 se puede reejecutar sin romper nada: es la forma normal de actualizar el catálogo
 cuando cambia un texto del menú o se agrega una variante.
 
-`db/001_schema.sql` define:
+`db/001_schema.sql` define el esquema completo, las dos mitades del sistema:
 
 - `categoria`, `opcion_menu`, `respuesta`, `documento`, `contacto`, `contexto`
 - Tablas de relación: `opcion_contacto`, `respuesta_documento`, `contexto_opcion`
 - `metrica_opcion` (métricas agregadas, sin datos personales)
-- Trigger `touch_actualizado_en` y vista `v_arbol_menu` para control
-
-`db/004_kb_schema.sql` agrega la base de conocimiento de las consultas escritas:
-
-- `kb_intencion` → qué intención corresponde a qué opción del menú
-- `kb_pregunta` → la formulación canónica de la consulta
-- `kb_pregunta_variante` → las redacciones alternativas, ya normalizadas
+- La base de conocimiento de las consultas escritas: `kb_intencion` (qué
+  intención corresponde a qué opción del menú), `kb_pregunta` (la formulación
+  canónica) y `kb_pregunta_variante` (las redacciones alternativas ya
+  normalizadas)
 - Índices: B-tree para la coincidencia exacta y GIN `gin_trgm_ops` para la
-  similitud; extensión `pg_trgm`
+  similitud; extensiones `pgcrypto` y `pg_trgm`
+- Trigger `touch_actualizado_en` y vistas `v_arbol_menu` y `v_kb_resolucion`
+  para control
 
 Cada intención apunta a una opción de `opcion_menu` y a una `respuesta` ya
 validada (`ON DELETE RESTRICT`): el contenido no se duplica ni se genera, se
@@ -408,7 +406,7 @@ Los mensajes entre el iframe y la página padre usan un `targetOrigin` explícit
 | `npm run build` | Compila backend y frontend |
 | `npm run typecheck` | Chequeo de tipos de ambos workspaces |
 | `npm test --workspace backend` | Tests del backend (`node --test`, sin dependencias extra) |
-| `npm run db:push` | Aplica `001_schema.sql` + `002_seed.sql` + las migraciones de la KB en Neon |
+| `npm run db:push` | Aplica `001_schema.sql` + `002_seed.sql` + `005_kb_seed.sql` en Neon |
 | `npm run db:reset` | Borra el esquema y lo vuelve a crear |
 | `npm run db:kb --workspace backend` | Regenera `db/005_kb_seed.sql` desde el seed de TypeScript |
 

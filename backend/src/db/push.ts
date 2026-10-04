@@ -1,9 +1,8 @@
 /**
  * Carga el esquema y el contenido inicial en Neon.
  *
- *   npm run db:push            -> aplica 001_schema.sql + 002_seed.sql
- *                                 y las migraciones de la base de conocimiento
- *                                 (004_kb_schema.sql + 005_kb_seed.sql)
+ *   npm run db:push            -> aplica 001_schema.sql (menu + base de
+ *                                 conocimiento) + 002_seed.sql + 005_kb_seed.sql
  *   npm run db:reset           -> borra el esquema antes de aplicar
  *   DATABASE_URL=... npm run db:push
  *
@@ -203,7 +202,6 @@ async function main(): Promise<void> {
 
   await ejecutar(await readFile(join(carpetaSql, '001_schema.sql'), 'utf8'), '001_schema.sql');
   await ejecutar(await readFile(join(carpetaSql, '002_seed.sql'), 'utf8'), '002_seed.sql');
-  await ejecutar(await readFile(join(carpetaSql, '004_kb_schema.sql'), 'utf8'), '004_kb_schema.sql');
   await ejecutar(await readFile(join(carpetaSql, '005_kb_seed.sql'), 'utf8'), '005_kb_seed.sql');
 
   const r = await query<{

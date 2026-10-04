@@ -154,7 +154,7 @@ SELECT categoria_clave, opcion_clave, opcion_tipo, es_volver,
 SELECT clave, creado_en, actualizado_en FROM categoria WHERE clave = 'RAIZ';
 
 -- ---------------------------------------------------------------------------
--- Base de conocimiento conversacional (004 + 005)
+-- Base de conocimiento conversacional (001 + 005)
 -- ---------------------------------------------------------------------------
 
 \echo ''
@@ -262,14 +262,14 @@ SELECT texto, intencion, ROUND(similitud, 4) AS similitud,
  ORDER BY texto;
 
 \echo ''
-\echo '=== 19. Cobertura por intencion (vista v_kb_resolucion) ==='
+\echo '=== 20. Cobertura por intencion (vista v_kb_resolucion) ==='
 SELECT intencion_clave, opcion_clave, priority, minimum_threshold,
        variantes, LEFT(pregunta, 46) AS pregunta
   FROM v_kb_resolucion
  ORDER BY domain, intencion_clave, priority DESC;
 
 \echo ''
-\echo '=== 20. Textos compartidos entre intenciones (disparan ACLARACION) ==='
+\echo '=== 21. Textos compartidos entre intenciones (disparan ACLARACION) ==='
 -- No es un error: son las redacciones genericas ("programa", "cuando empiezan
 -- las clases") que existen en varias materias a proposito, para que el motor
 -- pregunte en lugar de adivinar. Sirve para calibrar KB_UMBRAL_MEDIO.
@@ -286,7 +286,7 @@ HAVING COUNT(DISTINCT p.intencion_id) > 1
  ORDER BY intenciones DESC, v.normalized_text;
 
 \echo ''
-\echo '=== 21. Eventos de metrica registrados hasta ahora ==='
+\echo '=== 22. Eventos de metrica registrados hasta ahora ==='
 -- El flujo escrito agrega texto_exacto / texto_similar / texto_regla /
 -- aclaracion / no_disponible. No guarda el texto de la consulta.
 SELECT evento, COUNT(*) AS filas, SUM(total) AS eventos
