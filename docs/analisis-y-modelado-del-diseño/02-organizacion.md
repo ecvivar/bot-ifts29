@@ -110,7 +110,7 @@ El proyecto es desarrollado por Syntax SRL mediante metodología ágil con entre
 **Experiencia:**
 - Gestión de proyectos de software
 - Comunicación con stakeholders institucionales
-- Metodologías ágiles (Scrum, Kanban)
+- Metodología Kanban (flujo continuo)
 
 **Competencias clave:**
 - Liderazgo y organización
@@ -187,6 +187,6 @@ El proyecto es desarrollado por Syntax SRL mediante metodología ágil con entre
 ## Dedicación y Disponibilidad
 
 **Modelo:** Dedicación full-time durante ejecución del proyecto  
-**Duración:** 27 de agosto → 19 de noviembre de 2026 (12 semanas)  
+**Duración:** 27 de agosto → 15 de noviembre de 2026 (11 semanas)  
 **Coordinación:** Horarios de reuniones con IFTS N.°29 según disponibilidad institucional  
 
