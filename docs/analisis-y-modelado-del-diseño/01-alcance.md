@@ -16,9 +16,9 @@ El asistente responde consultas en tres áreas:
 
 | Área | Contenido | Fuentes |
 |------|----------|---------|
-| **Administrativa** | Inscripción, documentación, certificados, procedimientos, SIU Guaraní, Moodle, canales de contacto, fechas/plazos | Documentación oficial institucional |
-| **Académica** | Modalidad de cursada, docentes, comisiones, cronograma, programa, horarios, prácticas, canales de consulta (por materia) | Programas, cronogramas, presentaciones |
-| **Virtual** | Acceso al campus, ingreso a aulas, descarga de materiales, foros, encuentros sincrónicos, funciones de roles | FAQs, guías de familiarización |
+| **Administrativa** | Inscripción, documentación, certificados, procedimientos, SIU Guaraní, canales de contacto, fechas/plazos | Documentación oficial institucional |
+| **Académica** | Docentes, comisiones, cronograma, programa, horarios, prácticas, canales de consulta (por materia) | Programas, cronogramas, presentaciones |
+| **Modalidad** | Acceso a Moodle, ingreso a aulas, uso de foros, uso de mensajería interna |
 
 **Materias del MVP (Cuatrimestre 1):**
 - Administración de Bases de Datos
@@ -52,6 +52,58 @@ Para respuestas que dependen de datos contextuales (materia, comisión, docente)
 - Diferencia contenido vigente del histórico/de prueba
 - Ofrece enlace o archivo cuando corresponde
 - Sincronización automática con Google Drive
+
+#### Estructura de la Base de Conocimiento en Google Drive
+
+La base de conocimiento se organiza en Google Drive según las **tres áreas de consulta** del sistema:
+
+```
+📁 Base de Conocimiento IFTS29/
+  │
+  ├── 📁 Académica/
+  │   ├── Administración de Bases de Datos_Programa.pdf
+  │   ├── Administración de Bases de Datos_Cronograma.pdf
+  │   ├── Administración de Bases de Datos_Condiciones.pdf
+  │   ├── Elementos del Análisis Matemático_Programa.pdf
+  │   ├── Elementos del Análisis Matemático_Cronograma.pdf
+  │   ├── ... (resto de materias)
+  │   └── Plan de Estudios.pdf
+  │
+  ├── 📁 Administrativa/
+  │   ├── Inscripción.pdf
+  │   ├── Documentación Requerida.pdf
+  │   ├── Certificados.pdf
+  │   ├── Marco y Regulación.pdf
+  │   ├── Condiciones de Aprobación.pdf
+  │   └── ... (procedimientos, plazos, canales)
+  │
+  ├── 📁 Modalidad/
+  │   ├── Acceso a Moodle.pdf
+  │   ├── Foros y Encuentros Sincrónicos.pdf
+  │   ├── Descarga de Materiales.pdf
+  │   └── ... (guías de cursada virtual)
+  │
+  └── 📁 Contactos/
+      ├── tutores_por_comision.txt
+      ├── bedelía.txt
+      ├── asesoría_pedagógica.txt
+      └── ... (contactos institucionales dinámicos)
+```
+
+**Convención de nomenclatura de archivos:**
+- Archivos académicos por materia: `<Materia Completa>_<Tipo>.pdf`
+  - Ejemplo: `Técnicas de Programación_Programa.pdf`
+  - Tipos: Programa, Cronograma, Condiciones
+- Archivos administrativos: `<Asunto>.pdf` (sin subguiones de separación)
+  - Ejemplo: `Marco y Regulación.pdf`
+- Contactos dinámicos: `.txt` o `.csv` con mapeo de contexto
+  - Ejemplo: `tutores_por_comision.txt` (comisión → nombre, email, teléfono, horarios)
+
+**Sincronización automática:**
+- El sistema sincroniza con Google Drive mediante Service Account (solo lectura)
+- La sincronización es **exacta por nombre normalizado** (minúsculas, sin tildes ni puntuación)
+- Un documento sin archivo en Drive se muestra sin enlace, con aviso para contactar a tutoría o bedelía
+- Los contactos dinámicos (`.txt`, `.csv`) se cargan manualmente en el seed de TypeScript y se sincroniza la BD
 
 ### 6. Actualización Simplificada de Contenido (RF08, RF09)
 
@@ -148,7 +200,7 @@ Para respuestas que dependen de datos contextuales (materia, comisión, docente)
 | Aspecto | Alcance |
 |--------|---------|
 | **Usuarios** | Ingresantes 1er año, 1er cuatrimestre + personal institucional |
-| **Información** | 4 materias + administrativa + virtual |
+| **Información** | 4 materias + administrativa + modalidad |
 | **Consultas** | Menú guiado + texto libre |
 | **Documentos** | Sincronización desde Google Drive |
 | **Derivación** | Asincrónica a áreas institucionales |
