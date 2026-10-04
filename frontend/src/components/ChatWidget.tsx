@@ -311,11 +311,6 @@ function Entrada({ chat }: { chat: ReturnType<typeof useChat> }) {
           <IconoEnviar />
         </button>
       </div>
-
-      <p className="ifts-entrada__ayuda">
-        Enter para enviar · Shift+Enter para una línea nueva. Las respuestas son las
-        mismas del menú.
-      </p>
     </form>
   );
 }
