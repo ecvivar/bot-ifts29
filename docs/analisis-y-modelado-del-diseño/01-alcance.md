@@ -60,17 +60,23 @@ Para respuestas que dependen de datos contextuales (materia, comisión, docente)
 - Proceso de carga: editar TypeScript → regenerar SQL → empujar a BD
 - **Nota**: Interfaz de carga autónoma es mejora futura (Fase 2)
 
+### 7. Registro de Consultas para Mejora Continua (RF10)
+
+- Sistema registra todas las consultas (texto libre y menú) realizadas por estudiantes
+- Información agregada y anónima: qué se consultó, cuándo, con qué frecuencia
+- **Acceso:** Asesoría Pedagógica analiza el registro para identificar gaps en la base de conocimiento
+- **Uso:** Informar decisiones de actualización de contenido y mejoras en la estructura del menú
+- No almacena datos personales ni identifica al estudiante individual
+
 ---
 
 ## Plataformas
 
 | Plataforma | Soporte |
 |---|---|
-| **Web (Responsive)** | ✅ Sí — PC, tablet, navegadores modernos |
-| **Mobile** | ✅ Sí — Web responsiva cubre Android e iOS |
-| **Desktop** | ✅ Sí — Navegador estándar |
-
-*(Detalles técnicos: ver Análisis del Diseño y Diagramas)*
+| **Web (Responsive)** | PC, tablet, navegadores modernos |
+| **Mobile** | Web responsiva cubre Android e iOS |
+| **Desktop** | Navegador estándar |
 
 ---
 
@@ -100,9 +106,9 @@ Para respuestas que dependen de datos contextuales (materia, comisión, docente)
 ### 2. Personal Institucional (Usuario Secundario - Administrador)
 
 **Actores:**
-- Bedelía (actualización de fechas, procedimientos administrativos)
-- Tutores académicos (información de consulta, comisiones)
-- Asesoría Pedagógica (datos de contacto, información virtual)
+- Bedelía
+- Tutores académicos
+- Asesoría Pedagógica
 
 **Responsabilidades:**
 - Reportar cambios de contenido
@@ -126,17 +132,14 @@ Para respuestas que dependen de datos contextuales (materia, comisión, docente)
 
 ## Fuera de Alcance (MVP)
 
-❌ Gestión/tramitación de procesos — solo información  
-❌ Acceso a datos personales/académicos individuales  
-❌ Inscripción automática a materias o exámenes  
-❌ Integración directa con SIU Guaraní  
-❌ Soporte a aspirantes (pre-ingresantes)  
-❌ Reemplazo de docentes/tutores/bedelía  
-❌ Registro detallado de consultas no resueltas  
-❌ Evaluación de satisfacción del usuario (posible Fase 2)  
-❌ Notificación automática a áreas (solo muestra contacto)  
-
-*(Estos items son candidatos para futuras iteraciones)*
+- Gestión/tramitación de procesos — solo información  
+- Acceso a datos personales/académicos individuales  
+- Inscripción automática a materias o exámenes  
+- Integración con SIU Guaraní  
+- Soporte a aspirantes (pre-ingresantes)  
+- Reemplazo de docentes/tutores/bedelía  
+- Evaluación de satisfacción del usuario (posible Fase 2)  
+- Notificación automática a áreas (solo muestra contacto)  
 
 ---
 

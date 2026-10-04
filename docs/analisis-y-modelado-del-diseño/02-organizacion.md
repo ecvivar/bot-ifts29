@@ -85,27 +85,21 @@ El proyecto es desarrollado por Syntax SRL mediante metodología ágil con entre
 
 ## Metodología de Trabajo
 
-### Enfoque Ágil
+### Metodología Kanban
 
-- **Ciclos:** Sprints semanales/quincenales con entregas incrementales
-- **Ceremonias:**
-  - Reuniones de planificación de sprint
-  - Seguimiento diario de avances
-  - Validación con cliente en hitos
-  - Retrospectivas de mejora continua
+- **Enfoque:** Flujo continuo de trabajo visualizado en tablero Kanban
+- **Columnas:** Por Hacer → En Progreso → Revisión → Completado
+- **Seguimiento:**
+  - Seguimiento diario de avances y movimiento de tareas
+  - Validación con cliente en hitos clave
+  - Ajustes continuos según feedback
 
 ### Herramientas Colaborativas
 
 - Control de versiones: GitHub
 - Documentación: Google Docs (comunitario) + Markdown (repositorio)
-- Gestión de tareas: GitHub Projects / Trello
+- Gestión de tareas: Jira (tablero Kanban)
 - Comunicación: Canales sincróna y asincrónica
-
-### Enfoque de Entregas
-
-- **Fase 1 (MVP):** Funcionalidades core del menú guiado
-- **Fase 2:** Mejoras de interfaz y automatizaciones
-- **Fase 3+:** Escalabilidad a otras carreras y funcionalidades avanzadas
 
 ---
 
@@ -195,5 +189,4 @@ El proyecto es desarrollado por Syntax SRL mediante metodología ágil con entre
 **Modelo:** Dedicación full-time durante ejecución del proyecto  
 **Duración:** 27 de agosto → 19 de noviembre de 2026 (12 semanas)  
 **Coordinación:** Horarios de reuniones con IFTS N.°29 según disponibilidad institucional  
-**Comunicación:** Semanal con cliente para validaciones y feedback
 

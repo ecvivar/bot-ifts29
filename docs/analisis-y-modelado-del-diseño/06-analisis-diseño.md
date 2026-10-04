@@ -26,6 +26,12 @@
 | RF08 | Permitir actualizar la base de conocimiento a partir de documentos alojados en Drive (pdf, Excel, slides), sin intervención técnica. La carga puede apoyarse en IA para estructurar/etiquetar documentos fuente que no vengan normalizados. |
 | RF09 | Mecanismo simple para que personal no técnico (bedelía/tutores/asesoría pedagógica) incorpore, reemplace, elimine y actualice contenido, preguntas/respuestas, fechas, contactos y procedimientos, organizado por materia/comisión/categoría. |
 
+### Análisis y mejora continua
+
+| ID | Requerimiento |
+|----|----|
+| RF10 | Registrar todas las consultas realizadas (menú guiado y texto libre) de forma agregada y anónima: qué se consultó, cuándo, frecuencia. Proporcionar acceso a Asesoría Pedagógica para identificar gaps en la base de conocimiento e informar decisiones de actualización de contenido. No almacena datos personales ni identifica estudiantes individuales. |
+
 ---
 
 ## Requerimientos No Funcionales (RNF)
